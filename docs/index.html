@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<title>Guldbot</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='26' height='12' rx='3' fill='%23c9971c'/%3E%3Crect x='8' y='6' width='16' height='8' rx='2' fill='%23e3b341'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface-1: #fcfcfb;
+    --surface-2: #f0efec;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --border: rgba(11, 11, 11, 0.10);
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --good-text: #006300;
+    --critical: #d03b3b;
+    --warning: #fab219;
+    --gold: #b8860b;
+    --radius: 14px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface-1: #1a1a19;
+      --surface-2: #232321;
+      --text-primary: #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --grid: #2c2c2a;
+      --axis: #383835;
+      --border: rgba(255, 255, 255, 0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --good-text: #0ca30c;
+      --critical: #e66767;
+      --gold: #e3b341;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  main > *, .nivaer > *, .card { min-width: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--page); color: var(--text-primary);
+    font: 15px/1.45 var(--font);
+    padding: max(16px, env(safe-area-inset-top)) 14px max(32px, env(safe-area-inset-bottom));
+  }
+  main { max-width: 960px; margin: 0 auto; display: grid; gap: 14px; }
+  h1, h2, h3 { margin: 0; font-weight: 600; }
+  h2 { font-size: 16px; }
+  h3 { font-size: 15px; }
+  p { margin: 0; }
+  button, input, select { font: inherit; color: inherit; }
+  .muted { color: var(--text-muted); }
+  .secondary { color: var(--text-secondary); }
+  .small { font-size: 13px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px;
+  }
+  .card > h2 { margin-bottom: 10px; }
+  .rad { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mellan { justify-content: space-between; }
+
+  /* Huvud */
+  header.card { display: grid; gap: 10px; }
+  .varumarke { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .tacka { width: 18px; height: 12px; border-radius: 3px; background: var(--gold); display: inline-block; }
+  .status {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary);
+    padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
+  }
+  .prick { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+  .status.live .prick { background: var(--good-text); animation: puls 1.6s infinite; }
+  .status.fel .prick { background: var(--critical); }
+  @keyframes puls { 50% { opacity: .35; } }
+  .hjalte { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .hjalte .varde { font-size: 48px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; }
+  .hjalte .enhet { font-size: 16px; color: var(--text-secondary); }
+  .delta { font-weight: 600; }
+  .upp { color: var(--good-text); }
+  .ned { color: var(--critical); }
+  .sammanfattning { color: var(--text-secondary); }
+
+  /* Kontroller */
+  .kontroller { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .segment { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; padding: 3px; background: var(--surface-1); }
+  .segment button {
+    border: 0; background: transparent; padding: 7px 12px; border-radius: 7px; cursor: pointer; color: var(--text-secondary);
+  }
+  .segment button[aria-pressed="true"] { background: var(--text-primary); color: var(--surface-1); font-weight: 600; }
+  .knapp {
+    border: 1px solid var(--border); background: var(--surface-1); padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  }
+  .knapp:hover { background: var(--surface-2); }
+  .knapp.primar { background: var(--text-primary); color: var(--surface-1); border-color: transparent; font-weight: 600; }
+  select.knapp { padding-right: 8px; }
+  label.vaxel { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+  .ruta { padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 14px; color: var(--text-secondary); }
+  .ruta.fel { border-left: 3px solid var(--critical); }
+  .ruta.info { border-left: 3px solid var(--warning); }
+  :focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
+
+  /* Nivåkort */
+  .nivaer { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .niva { display: grid; gap: 10px; align-content: start; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; border: 1px solid var(--border);
+  }
+  .chip.aktiv { background: var(--text-primary); color: var(--surface-1); border-color: transparent; }
+  .chip.setup { background: color-mix(in srgb, var(--warning) 22%, var(--surface-1)); border-color: color-mix(in srgb, var(--warning) 70%, transparent); }
+  .chip.inget { color: var(--text-secondary); }
+  dl.fakta { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+  dl.fakta dt { color: var(--text-secondary); }
+  dl.fakta dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  details summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+  details[open] summary { margin-bottom: 6px; }
+
+  /* Diagram */
+  .flikar { display: inline-flex; gap: 4px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-secondary); margin: 4px 0 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
+  .legend i.triangel { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--text-primary); border-radius: 0; }
+  .diagram { position: relative; }
+  .diagram svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
+  .diagram svg:focus { outline: none; }
+  .diagram svg:focus-visible { outline: 2px solid var(--series-1); outline-offset: 4px; border-radius: 6px; }
+  .diagram text { font: 11px var(--font); fill: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .diagram text.etikett { fill: var(--text-secondary); font-size: 12px; }
+  .tips {
+    position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    min-width: 150px; display: none; z-index: 2;
+  }
+  .tips .rubrik { color: var(--text-muted); margin-bottom: 4px; }
+  .tips .rad { display: grid; grid-template-columns: 14px 1fr auto; gap: 6px; align-items: center; }
+  .tips .rad i { height: 2px; border-radius: 1px; }
+  .tips .rad b { font-variant-numeric: tabular-nums; text-align: right; }
+  .tips .rad span { color: var(--text-secondary); }
+  .vantar { opacity: .55; transition: opacity .2s; }
+
+  /* Tabeller */
+  .tabellram { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--text-secondary); font-weight: 500; }
+
+  ul.analys { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  ul.analys li { display: grid; grid-template-columns: 120px 1fr; gap: 10px; font-size: 14px; }
+  ul.analys li b { font-weight: 600; }
+  @media (max-width: 520px) { ul.analys li { grid-template-columns: 1fr; gap: 0; } }
+  ul.logg { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  ul.logg li { font-size: 14px; border-bottom: 1px solid var(--grid); padding-bottom: 8px; }
+  ul.logg li:last-child { border-bottom: 0; }
+  ul.logg .tid { font-size: 12px; color: var(--text-muted); }
+  ul.logg .text { color: var(--text-secondary); white-space: pre-line; }
+
+  dialog {
+    border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-1); color: var(--text-primary);
+    padding: 20px; width: min(480px, calc(100vw - 28px));
+  }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog form { display: grid; gap: 14px; }
+  dialog label { display: grid; gap: 5px; font-size: 14px; }
+  dialog input { padding: 9px 10px; border: 1px solid var(--axis); border-radius: 8px; background: var(--page); }
+  .notisruta {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: min(520px, calc(100vw - 28px));
+    background: var(--text-primary); color: var(--surface-1); padding: 12px 14px; border-radius: 12px; font-size: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25); display: none; z-index: 10; white-space: pre-line;
+  }
+  footer { max-width: 960px; margin: 6px auto 0; font-size: 13px; color: var(--text-muted); display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header class="card" aria-live="polite">
+    <div class="rad mellan">
+      <div class="varumarke"><span class="tacka" aria-hidden="true"></span>Guldbot</div>
+      <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
+    </div>
+    <div>
+      <div class="small secondary" id="prisrubrik">Guld (XAU/USD)</div>
+      <div class="hjalte">
+        <span class="varde" id="pris">–</span><span class="enhet">USD</span>
+        <span class="delta" id="dygn"></span>
+      </div>
+    </div>
+    <p class="sammanfattning" id="sammanfattning"></p>
+  </header>
+
+  <div class="kontroller" role="group" aria-label="Läge">
+    <div class="segment" role="group" aria-label="Datakälla">
+      <button type="button" id="knappMoln" aria-pressed="true">Moln · varje timme</button>
+      <button type="button" id="knappLive" aria-pressed="false">Live</button>
+    </div>
+    <select id="liveIntervall" class="knapp" aria-label="Staplar i live-läget" hidden>
+      <option value="5min">5-minutersstaplar</option>
+      <option value="15min">15-minutersstaplar</option>
+      <option value="1h">Timstaplar</option>
+    </select>
+    <label class="vaxel" id="liveNotisRad" hidden><input type="checkbox" id="liveNotiser"> Notiser till mobilen under live</label>
+    <button type="button" class="knapp" id="knappInstallningar">Inställningar</button>
+  </div>
+  <div id="meddelande" hidden></div>
+
+  <section class="nivaer" id="nivaer" aria-label="Lägen per risknivå"></section>
+
+  <section class="card" id="prisdiagram">
+    <div class="rad mellan">
+      <h2>Pris och glidande medelvärden</h2>
+      <div class="segment flikar" role="group" aria-label="Visa signaler för">
+        <button type="button" data-niva="lag" aria-pressed="false">Låg</button>
+        <button type="button" data-niva="medel" aria-pressed="true">Medel</button>
+        <button type="button" data-niva="hog" aria-pressed="false">Hög</button>
+      </div>
+    </div>
+    <div class="legend" id="prislegend"></div>
+    <div class="diagram" id="prisytan"></div>
+    <details class="small" id="pristabell"><summary>Visa som tabell</summary><div class="tabellram"></div></details>
+  </section>
+
+  <section class="card">
+    <h2>Analys just nu</h2>
+    <ul class="analys" id="analys"></ul>
+  </section>
+
+  <section class="card">
+    <div class="rad mellan"><h2 id="historikrubrik">Senaste signaler</h2></div>
+    <p class="small muted" style="margin:4px 0 8px">1R = det du riskerar per affär, alltså avståndet till stop-lossen. +2R betyder att vinsten blev dubbelt så stor som risken.</p>
+    <div class="tabellram"><table id="historik"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Hur reglerna har gått historiskt</h2>
+    <p class="small muted" id="backtestinfo" style="margin:4px 0 8px"></p>
+    <div class="tabellram"><table id="backtest"></table></div>
+    <div class="legend" id="kurvlegend" style="margin-top:14px"></div>
+    <div class="diagram" id="kurvytan"></div>
+  </section>
+
+  <section class="card">
+    <h2>Notiser från molnet</h2>
+    <ul class="logg" id="notislogg" style="margin-top:6px"></ul>
+  </section>
+</main>
+
+<footer>
+  <p>Guldbot visar vad fasta tekniska regler säger om guldpriset. Det är inte investeringsrådgivning, och historiska resultat är ingen garanti för framtiden. Alla beslut om köp och sälj fattar du själv.</p>
+  <p id="kalla"></p>
+</footer>
+
+<dialog id="installningar">
+  <form method="dialog" id="installningsform">
+    <h2>Inställningar</h2>
+    <p class="small secondary">Sparas bara i den här webbläsaren. Nyckeln och ämnet skickas aldrig till GitHub.</p>
+    <label>Twelve Data API-nyckel (behövs för live-läget)
+      <input id="falNyckel" autocomplete="off" spellcheck="false" placeholder="t.ex. 1a2b3c…">
+    </label>
+    <label>ntfy-ämne (för notiser under live-läget)
+      <input id="falAmne" autocomplete="off" spellcheck="false" placeholder="samma ämne som i molnet">
+    </label>
+    <label>Ditt tradingkapital i kronor (valfritt)
+      <input id="falKapital" inputmode="decimal" placeholder="t.ex. 20000">
+      <span class="small muted">Används för att räkna ut ungefärlig insats per affär utifrån risknivån.</span>
+    </label>
+    <div class="rad" style="justify-content:flex-end">
+      <button class="knapp" value="avbryt" formnovalidate>Avbryt</button>
+      <button class="knapp primar" value="spara" id="sparaInstallningar">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="notisruta" id="notisruta" role="status"></div>
+
+<script type="module">
+import { analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText } from './engine.js';
+
+// ---------- Hjälpare ----------
+const $ = (id) => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs = {}, ...barn) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v);
+  }
+  for (const b of barn.flat()) if (b != null) e.append(b instanceof Node ? b : document.createTextNode(String(b)));
+  return e;
+}
+function sv(tag, attrs = {}, forelder) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (forelder) forelder.appendChild(e);
+  return e;
+}
+const lager = {
+  hamta(k, std = '') { try { return localStorage.getItem('guldbot.' + k) ?? std; } catch { return std; } },
+  spara(k, v) { try { localStorage.setItem('guldbot.' + k, v); } catch { /* privat läge */ } },
+};
+const tidFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const klockFmt = new Intl.DateTimeFormat('sv-SE', { hour: '2-digit', minute: '2-digit' });
+const datumFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' });
+const tid = (t) => tidFmt.format(new Date(t));
+function sedan(t) {
+  const min = Math.round((Date.now() - t) / 60000);
+  if (min < 60) return `${Math.max(min, 0)} min sedan`;
+  const h = Math.round(min / 60);
+  if (h < 48) return `${h} tim sedan`;
+  return `${Math.round(h / 24)} dagar sedan`;
+}
+// Signaler tas när en stapel stänger, så visa stängningstiden.
+const stangd = (tt) => tid(tt + ((aktuell()?.intervallMin) || 60) * 60000);
+const signR = (r, dec = 2) => {
+  if (Math.abs(r) < 0.5 * 10 ** -dec) return `${tal(0, dec)}R`;
+  return `${r > 0 ? '+' : ''}${tal(r, dec)}R`;
+};
+const RIKT = { 1: 'Lång', '-1': 'Kort' };
+
+// ---------- Tillstånd ----------
+const t = {
+  lage: 'moln',
+  moln: null,
+  live: null,
+  liveForra: null,
+  liveTimer: null,
+  niva: lager.hamta('niva', 'medel'),
+  intervall: lager.hamta('intervall', '5min'),
+};
+const INTERVALL_MIN = { '5min': 5, '15min': 15, '1h': 60 };
+
+// ---------- Rendering ----------
+function visaMeddelande(text, typ = 'info') {
+  const m = $('meddelande');
+  if (!text) { m.hidden = true; m.textContent = ''; return; }
+  m.hidden = false; m.className = `ruta ${typ}`; m.textContent = text;
+}
+
+function satStatus(text, klass = '') {
+  $('status').className = `status ${klass}`;
+  $('statustext').textContent = text;
+}
+
+function aktuell() { return t.lage === 'live' && t.live ? t.live : t.moln; }
+
+function rendera() {
+  const k = aktuell();
+  if (!k) return;
+  const a = k.analys;
+  const kapital = Number(String(lager.hamta('kapital')).replace(/\s/g, '').replace(',', '.')) || 0;
+
+  // Huvud
+  const visatPris = k.senastePris ?? a.pris;
+  $('pris').textContent = tal(visatPris);
+  $('prisrubrik').textContent = k.senastePris != null ? 'Guld (XAU/USD) · senaste pris' : 'Guld (XAU/USD) · senast stängda stapel';
+  const dygnRad = a.analys.find((r) => r.rubrik === 'Senaste dygnet');
+  const dygn = $('dygn');
+  dygn.textContent = dygnRad ? `${dygnRad.text.replace('.', '')} senaste dygnet` : '';
+  dygn.className = 'delta ' + (dygnRad && !dygnRad.text.startsWith('−') && !dygnRad.text.startsWith('-') ? 'upp' : 'ned');
+  const trend = a.analys.find((r) => r.rubrik === 'Trend')?.text.split(' – ')[0] || '';
+  const aktiva = Object.values(a.nivaer).filter((n) => n.oppen).map((n) => `${n.namn.toLowerCase()} ${RIKT[n.oppen.riktning].toLowerCase()}`);
+  const setups = Object.values(a.nivaer).filter((n) => n.lage === 'SETUP');
+  $('sammanfattning').textContent =
+    `Trend: ${trend.toLowerCase()} · RSI ${tal(a.indikatorer.rsi, 0)} · ` +
+    (aktiva.length ? `Aktiva lägen: ${aktiva.join(', ')}` : setups.length ? `Möjligt läge på väg (${setups.map((n) => n.namn.toLowerCase()).join(', ')})` : 'Inga aktiva lägen just nu');
+
+  // Nivåkort
+  const nivaer = $('nivaer');
+  nivaer.replaceChildren(...Object.values(a.nivaer).map((n) => nivakort(n, a, kapital, k)));
+
+  // Diagram
+  prisdiagram(a);
+  kurvdiagram(a);
+
+  // Analystext
+  $('analys').replaceChildren(...a.analys.map((r) => el('li', {}, el('b', { text: r.rubrik }), el('span', { class: 'secondary', text: r.text }))));
+
+  // Historik
+  historik(a);
+  backtest(a);
+
+  // Notislogg (molnet)
+  const logg = t.moln?.notislogg || [];
+  $('notislogg').replaceChildren(...(logg.length
+    ? logg.slice(0, 15).map((n) => el('li', {}, el('div', { class: 'tid', text: tid(Date.parse(n.tid)) }), el('div', { text: n.titel }), el('div', { class: 'text', text: n.text })))
+    : [el('li', { class: 'muted', text: 'Inga notiser ännu.' })]));
+
+  // Källa
+  $('kalla').textContent = k.kalla ? `Datakälla: ${k.kalla}. Staplar: ${k.intervallText}. Signaler räknas bara på stängda staplar.` : '';
+}
+
+function nivakort(n, a, kapital, k) {
+  const kort = el('article', { class: 'card niva', 'aria-label': n.namn });
+  let chip;
+  if (n.oppen) chip = el('span', { class: 'chip aktiv' }, n.oppen.riktning === 1 ? '▲ Lång' : '▼ Kort');
+  else if (n.setup) chip = el('span', { class: 'chip setup' }, `◎ Möjligt ${RIKT[n.setup.riktning].toLowerCase()} läge på väg`);
+  else chip = el('span', { class: 'chip inget' }, '– Inget läge');
+  kort.append(el('div', { class: 'rad mellan' }, el('h3', { text: n.namn }), chip));
+
+  const fakta = el('dl', { class: 'fakta' });
+  const rad = (dt, dd, klass) => fakta.append(el('dt', { text: dt }), el('dd', { class: klass, text: dd }));
+  const niva = NIVAER[n.id];
+  if (n.oppen) {
+    const o = n.oppen;
+    rad('Signal', `${stangd(o.inT)} (${sedan(o.inT + k.intervallMin * 60000)})`);
+    rad('Pris vid signal', tal(o.inPris));
+    rad('Stop-loss', tal(o.stop));
+    rad('Mål', tal(o.mal));
+    rad('Läget nu', signR(o.aktuelltR), o.aktuelltR >= 0 ? 'upp' : 'ned');
+    rad('Turbo, högst ca', `${o.maxHavstang}x`);
+    const ins = insats(kapital, niva, o.inPris, o.risk, o.maxHavstang);
+    if (ins) rad(`Insats vid ${o.maxHavstang}x`, `ca ${tal(ins.insatsKr, 0)} kr`);
+  } else {
+    if (n.setup) {
+      kort.append(el('p', { class: 'small secondary', text: `EMA-linjerna är ${tal(n.setup.avstandAtr)} ATR från en korsning ${n.setup.riktning === 1 ? 'uppåt' : 'nedåt'}, och trendkraven för den här nivån är uppfyllda. Signalen kommer om korsningen sker och RSI ligger rätt.` }));
+    }
+    rad('Stop vid ny signal', `ca ${tal(n.nyttStopAvstand)} USD bort`);
+    rad('Turbo, högst ca', `${n.nyMaxHavstang}x`);
+    const ins = insats(kapital, niva, a.pris, n.nyttStopAvstand, n.nyMaxHavstang);
+    if (ins) rad(`Insats vid ${n.nyMaxHavstang}x`, `ca ${tal(ins.insatsKr, 0)} kr`);
+  }
+  if (kapital) rad('Risk per affär', `${tal(niva.riskProc, 1)} % = ${tal((kapital * niva.riskProc) / 100, 0)} kr`);
+  const s = n.stats;
+  rad('Historiskt', `${s.antal} affärer, ${signR(s.summaR)}`);
+  kort.append(fakta);
+  kort.append(el('details', {}, el('summary', { text: 'Regler för nivån' }), el('p', { class: 'small secondary', text: regelText(niva) })));
+  return kort;
+}
+
+function insats(kapital, niva, pris, stopAvstand, havstang) {
+  if (!kapital) return null;
+  const riskKr = (kapital * niva.riskProc) / 100;
+  return { insatsKr: Math.min(kapital, riskKr / (havstang * (stopAvstand / pris))) };
+}
+
+// ---------- Linjediagram ----------
+function snyggaSteg(min, max, antal = 4) {
+  const spann = max - min || 1;
+  const grov = spann / antal;
+  const mag = 10 ** Math.floor(Math.log10(grov));
+  const steg = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= grov) || 10 * mag;
+  const ut = [];
+  for (let v = Math.ceil(min / steg) * steg; v <= max + 1e-9; v += steg) ut.push(v);
+  return { varden: ut, steg };
+}
+
+function narmast(xs, x) {
+  let lo = 0, hi = xs.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (xs[m] <= x) lo = m; else hi = m; }
+  return Math.abs(xs[lo] - x) <= Math.abs(xs[hi] - x) ? lo : hi;
+}
+
+// serier: [{ namn, farg, punkter: [[x, y], ...] }]
+function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) => tal(v), yAxelFormat = (v, steg) => tal(v, steg >= 1 ? 0 : 2), markorer = [], refLinjer = [], hojd = 300, nollLinje = false }) {
+  yta.replaceChildren();
+  const bredd = Math.max(280, yta.clientWidth || 600);
+  const visaSlutEtiketter = bredd >= 560;
+  const m = { v: 56, h: visaSlutEtiketter ? 112 : 10, o: 10, n: 26 };
+  const W = bredd - m.v - m.h, H = hojd - m.o - m.n;
+  const allaX = [...new Set(serier.flatMap((s) => s.punkter.map((p) => p[0])))].sort((a, b) => a - b);
+  if (!allaX.length) { yta.append(el('p', { class: 'small muted', text: 'Ingen data att visa ännu.' })); return; }
+  const allaY = serier.flatMap((s) => s.punkter.map((p) => p[1])).concat(refLinjer.map((r) => r.y)).filter(Number.isFinite);
+  if (nollLinje) allaY.push(0);
+  let yMin = Math.min(...allaY), yMax = Math.max(...allaY);
+  const pad = (yMax - yMin) * 0.06 || 1; yMin -= pad; yMax += pad;
+  const xMin = allaX[0], xMax = allaX[allaX.length - 1] === xMin ? xMin + 1 : allaX[allaX.length - 1];
+  const X = (x) => m.v + ((x - xMin) / (xMax - xMin)) * W;
+  const Y = (y) => m.o + (1 - (y - yMin) / (yMax - yMin)) * H;
+
+  const svg = sv('svg', { viewBox: `0 0 ${bredd} ${hojd}`, height: hojd, tabindex: 0, role: 'img', 'aria-label': tipsTitel });
+  // Rutnät och y-axel
+  const { varden, steg } = snyggaSteg(yMin, yMax, 4);
+  for (const v of varden) {
+    sv('line', { x1: m.v, x2: m.v + W, y1: Y(v), y2: Y(v), stroke: 'var(--grid)', 'stroke-width': 1 }, svg);
+    const txt = sv('text', { x: m.v - 8, y: Y(v) + 4, 'text-anchor': 'end' }, svg); txt.textContent = yAxelFormat(v, steg);
+  }
+  if (nollLinje && yMin < 0 && yMax > 0) sv('line', { x1: m.v, x2: m.v + W, y1: Y(0), y2: Y(0), stroke: 'var(--axis)', 'stroke-width': 1 }, svg);
+  sv('line', { x1: m.v, x2: m.v + W, y1: m.o + H, y2: m.o + H, stroke: 'var(--axis)', 'stroke-width': 1 }, svg);
+  // x-etiketter
+  const antalX = Math.max(2, Math.min(5, Math.floor(W / 110)));
+  for (let k = 0; k <= antalX; k++) {
+    const x = xMin + ((xMax - xMin) * k) / antalX;
+    const txt = sv('text', { x: X(x), y: hojd - 6, 'text-anchor': k === 0 ? 'start' : k === antalX ? 'end' : 'middle' }, svg);
+    txt.textContent = xFormat(allaX[narmast(allaX, x)]);
+  }
+  // Referenslinjer (stop/mål)
+  for (const r of refLinjer) {
+    if (!(r.y >= yMin && r.y <= yMax)) continue;
+    sv('line', { x1: m.v, x2: m.v + W, y1: Y(r.y), y2: Y(r.y), stroke: 'var(--text-muted)', 'stroke-width': 1, 'stroke-dasharray': '4 4' }, svg);
+    const txt = sv('text', { x: m.v + 4, y: Y(r.y) - 4 }, svg); txt.textContent = `${r.etikett} ${tal(r.y)}`;
+  }
+  // Linjer
+  for (const s of serier) {
+    const d = s.punkter.filter((p) => Number.isFinite(p[1])).map((p, k) => `${k ? 'L' : 'M'}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join('');
+    sv('path', { d, fill: 'none', stroke: s.farg, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+  }
+  // Slutetiketter (bara om de inte krockar; annars bär legenden namnen)
+  if (visaSlutEtiketter) {
+    const slut = serier.map((s) => { const p = s.punkter.filter((q) => Number.isFinite(q[1])).at(-1); return p && { s, y: Y(p[1]), x: X(p[0]), v: p[1] }; }).filter(Boolean).sort((a, b) => a.y - b.y);
+    const krock = slut.some((e, k) => k && e.y - slut[k - 1].y < 14);
+    for (const e of slut) {
+      if (krock && e !== slut.find((q) => q.s === serier[0])) continue;
+      const txt = sv('text', { x: e.x + 8, y: e.y + 4, class: 'etikett' }, svg); txt.textContent = `${e.s.kort || e.s.namn} ${yFormat(e.v)}`;
+    }
+  }
+  // Markörer (affärer)
+  for (const mk of markorer) {
+    if (mk.x < xMin || mk.x > xMax) continue;
+    const cx = X(mk.x), cy = Y(mk.y);
+    if (mk.form === 'ring') {
+      sv('circle', { cx, cy, r: 4, fill: 'var(--surface-1)', stroke: 'var(--text-primary)', 'stroke-width': 2 }, svg);
+    } else {
+      const u = mk.form === 'upp';
+      const d = u ? `M${cx},${cy - 6}L${cx + 6},${cy + 5}L${cx - 6},${cy + 5}Z` : `M${cx},${cy + 6}L${cx + 6},${cy - 5}L${cx - 6},${cy - 5}Z`;
+      sv('path', { d, fill: 'var(--text-primary)', stroke: 'var(--surface-1)', 'stroke-width': 2, 'paint-order': 'stroke' }, svg);
+    }
+  }
+  // Hovringslager
+  const kors = sv('line', { y1: m.o, y2: m.o + H, stroke: 'var(--axis)', 'stroke-width': 1, visibility: 'hidden' }, svg);
+  const prickar = serier.map((s) => sv('circle', { r: 4, fill: s.farg, stroke: 'var(--surface-1)', 'stroke-width': 2, visibility: 'hidden' }, svg));
+  const yta2 = sv('rect', { x: m.v, y: m.o, width: W, height: H, fill: 'transparent' }, svg);
+  yta.append(svg);
+  const tips = el('div', { class: 'tips' });
+  yta.append(tips);
+  let idx = allaX.length - 1;
+  function visa(i) {
+    idx = Math.max(0, Math.min(allaX.length - 1, i));
+    const x = allaX[idx];
+    kors.setAttribute('x1', X(x)); kors.setAttribute('x2', X(x)); kors.setAttribute('visibility', 'visible');
+    const rader = [];
+    serier.forEach((s, k) => {
+      const xs = s.punkter.map((p) => p[0]);
+      const j = narmast(xs, x);
+      const p = s.punkter[j];
+      if (!p || !Number.isFinite(p[1])) { prickar[k].setAttribute('visibility', 'hidden'); return; }
+      prickar[k].setAttribute('cx', X(p[0])); prickar[k].setAttribute('cy', Y(p[1])); prickar[k].setAttribute('visibility', 'visible');
+      const i2 = el('i'); i2.style.background = s.farg;
+      rader.push(el('div', { class: 'rad' }, i2, el('span', { text: s.namn }), el('b', { text: yFormat(p[1]) })));
+    });
+    tips.replaceChildren(el('div', { class: 'rubrik', text: xFormat(x) }), ...rader);
+    tips.style.display = 'block';
+    const px = (X(x) / bredd) * yta.clientWidth;
+    const tw = tips.offsetWidth;
+    tips.style.left = `${px + 12 + tw > yta.clientWidth ? px - tw - 12 : px + 12}px`;
+    tips.style.top = `${m.o}px`;
+  }
+  function gom() { kors.setAttribute('visibility', 'hidden'); prickar.forEach((p) => p.setAttribute('visibility', 'hidden')); tips.style.display = 'none'; }
+  svg.addEventListener('pointermove', (e) => {
+    const r = svg.getBoundingClientRect();
+    const xp = ((e.clientX - r.left) / r.width) * bredd;
+    const xv = xMin + ((xp - m.v) / W) * (xMax - xMin);
+    visa(narmast(allaX, xv));
+  });
+  svg.addEventListener('pointerleave', gom);
+  svg.addEventListener('focus', () => visa(idx));
+  svg.addEventListener('blur', gom);
+  svg.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { visa(idx - 1); e.preventDefault(); }
+    else if (e.key === 'ArrowRight') { visa(idx + 1); e.preventDefault(); }
+    else if (e.key === 'Escape') gom();
+  });
+  void yta2;
+}
+
+function legend(mal, poster) {
+  mal.replaceChildren(...poster.map((p) => {
+    const i = el('i', { class: p.triangel ? 'triangel' : null });
+    if (p.farg) i.style.background = p.farg;
+    if (p.ring) Object.assign(i.style, { width: '8px', height: '8px', borderRadius: '50%', border: '2px solid var(--text-primary)', background: 'transparent' });
+    return el('span', {}, i, p.namn);
+  }));
+}
+
+function prisdiagram(a) {
+  const s = a.serie;
+  const idx = s.t.map((_, i) => i);
+  const tIdx = new Map(s.t.map((tt, i) => [tt, i]));
+  const xFormat = (i) => tid(s.t[Math.round(i)]);
+  const serier = [
+    { namn: 'Pris', kort: 'Pris', farg: 'var(--series-1)', punkter: idx.map((i) => [i, s.c[i]]) },
+    { namn: `EMA ${9}`, kort: 'EMA 9', farg: 'var(--series-2)', punkter: idx.map((i) => [i, s.emaS[i]]) },
+    { namn: `EMA ${21}`, kort: 'EMA 21', farg: 'var(--series-3)', punkter: idx.map((i) => [i, s.emaL[i]]) },
+    { namn: `EMA ${100} (trend)`, kort: 'EMA 100', farg: 'var(--series-4)', punkter: idx.map((i) => [i, s.emaT[i]]) },
+  ];
+  const n = a.nivaer[t.niva];
+  const markorer = [];
+  const tillIdx = (tt) => (tIdx.has(tt) ? tIdx.get(tt) : null);
+  for (const af of n.affarer) {
+    const i = tillIdx(af.inT); if (i != null) markorer.push({ x: i, y: af.inPris, form: af.riktning === 1 ? 'upp' : 'ned' });
+    const u = tillIdx(af.utT); if (u != null) markorer.push({ x: u, y: af.utPris, form: 'ring' });
+  }
+  const refLinjer = [];
+  if (n.oppen) {
+    const i = tillIdx(n.oppen.inT); if (i != null) markorer.push({ x: i, y: n.oppen.inPris, form: n.oppen.riktning === 1 ? 'upp' : 'ned' });
+    refLinjer.push({ y: n.oppen.stop, etikett: 'Stop' }, { y: n.oppen.mal, etikett: 'Mål' });
+  }
+  legend($('prislegend'), [
+    ...serier.map((x) => ({ namn: x.namn, farg: x.farg })),
+    { namn: `Signal (${n.namn.toLowerCase()})`, triangel: true },
+    { namn: 'Utgång', ring: true },
+  ]);
+  linjediagram($('prisytan'), { serier, xFormat, tipsTitel: 'Guldpris med glidande medelvärden', markorer, refLinjer, hojd: 300 });
+
+  // Tabellvy
+  const rader = s.t.map((tt, i) => i).slice(-24).reverse();
+  const tab = el('table', {}, el('tr', {}, ...['Tid', 'Pris', 'EMA 9', 'EMA 21', 'EMA 100'].map((h) => el('th', { text: h }))),
+    ...rader.map((i) => el('tr', {}, el('td', { text: tid(s.t[i]) }), ...[s.c[i], s.emaS[i], s.emaL[i], s.emaT[i]].map((v) => el('td', { text: tal(v) })))));
+  $('pristabell').querySelector('.tabellram').replaceChildren(tab);
+}
+
+function kurvdiagram(a) {
+  const farger = { lag: 'var(--series-1)', medel: 'var(--series-2)', hog: 'var(--series-3)' };
+  const serier = Object.values(a.nivaer).map((n) => {
+    const kurva = n.stats.kurva || [];
+    const slut = kurva.length ? kurva.at(-1)[1] : 0;
+    return { namn: n.namn, kort: n.namn, farg: farger[n.id], punkter: [[a.backtestFran, 0], ...kurva, [a.backtestTill, slut]] };
+  });
+  legend($('kurvlegend'), serier.map((s) => ({ namn: s.namn, farg: s.farg })));
+  linjediagram($('kurvytan'), {
+    serier, xFormat: (x) => datumFmt.format(new Date(x)), yFormat: (v) => signR(v), yAxelFormat: (v, steg) => signR(v, steg >= 1 ? 0 : 1),
+    tipsTitel: 'Ackumulerat resultat i R per risknivå',
+    hojd: 220, nollLinje: true,
+  });
+}
+
+function historik(a) {
+  const n = a.nivaer[t.niva];
+  $('historikrubrik').textContent = `Senaste signaler · ${n.namn.toLowerCase()}`;
+  const rader = [];
+  if (n.oppen) {
+    const o = n.oppen;
+    rader.push(el('tr', {}, el('td', { text: stangd(o.inT) }), el('td', { text: RIKT[o.riktning] }), el('td', { text: tal(o.inPris) }),
+      el('td', { text: 'pågår' }), el('td', { text: '–' }), el('td', { class: o.aktuelltR >= 0 ? 'upp' : 'ned', text: signR(o.aktuelltR) })));
+  }
+  for (const af of [...n.affarer].reverse().slice(0, 12)) {
+    rader.push(el('tr', {}, el('td', { text: stangd(af.inT) }), el('td', { text: RIKT[af.riktning] }), el('td', { text: tal(af.inPris) }),
+      el('td', { text: tal(af.utPris) }), el('td', { text: af.orsak }), el('td', { class: af.r >= 0 ? 'upp' : 'ned', text: signR(af.r) })));
+  }
+  $('historik').replaceChildren(
+    el('tr', {}, ...['Signal', 'Riktning', 'In', 'Ut', 'Orsak', 'Resultat'].map((h) => el('th', { text: h }))),
+    ...(rader.length ? rader : [el('tr', {}, el('td', { colspan: 6, class: 'muted', text: 'Inga signaler i perioden.' }))]),
+  );
+}
+
+function backtest(a) {
+  $('backtestinfo').textContent =
+    `Reglerna körda på ${a.antalStaplar} staplar, ${datumFmt.format(new Date(a.backtestFran))} – ${datumFmt.format(new Date(a.backtestTill))}. ` +
+    `Räknat på guldpriset med 0,04 % kostnad per affär. En turbo har oftast större spread, och historiken säger inget säkert om framtiden.`;
+  const pf = (v) => (v === Infinity ? '∞' : tal(v));
+  $('backtest').replaceChildren(
+    el('tr', {}, ...['Nivå', 'Affärer', 'Träff', 'Summa', 'Snitt', 'Profit factor', 'Max nedgång', 'Längsta förlustsvit'].map((h) => el('th', { text: h }))),
+    ...Object.values(a.nivaer).map((n) => {
+      const s = n.stats;
+      return el('tr', {}, el('td', { text: n.namn }), el('td', { text: s.antal }), el('td', { text: `${tal(s.traffProc, 0)} %` }),
+        el('td', { class: s.summaR >= 0 ? 'upp' : 'ned', text: signR(s.summaR) }), el('td', { text: signR(s.snittR) }),
+        el('td', { text: pf(s.profitFaktor) }), el('td', { text: `${tal(s.maxNedgangR)}R` }), el('td', { text: s.langstaForlustsvit }));
+    }),
+  );
+}
+
+// ---------- Moln ----------
+async function laddaMoln(tyst = false) {
+  try {
+    const svar = await fetch(`data.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!svar.ok) throw new Error(svar.status === 404 ? 'ingen-data' : `HTTP ${svar.status}`);
+    const d = await svar.json();
+    t.moln = {
+      analys: d, kalla: d.meta?.kalla, intervallText: d.meta?.intervall || '1 timme', intervallMin: d.intervallMin || 60,
+      notislogg: d.notislogg || [], uppdaterad: d.meta?.uppdaterad, fel: d.meta?.fel,
+    };
+    if (t.lage === 'moln') {
+      const upp = t.moln.uppdaterad ? Date.parse(t.moln.uppdaterad) : null;
+      if (t.moln.fel) { satStatus('Moln · problem med prisdata', 'fel'); visaMeddelande(`Senaste körningen kunde inte hämta prisdata: ${t.moln.fel}. Du ser den senaste lyckade analysen.`, 'fel'); }
+      else { satStatus(upp ? `Moln · uppdaterad ${klockFmt.format(new Date(upp))}` : 'Moln'); visaMeddelande(''); }
+      rendera();
+    }
+  } catch (e) {
+    if (t.lage !== 'moln' || tyst) return;
+    satStatus('Moln · ingen analys ännu', 'fel');
+    visaMeddelande(e.message === 'ingen-data'
+      ? 'Ingen analys finns ännu. Öppna repot på GitHub → Actions → Guldanalys → Run workflow, så skapas den första inom någon minut. Live-läget fungerar redan nu om du har lagt in en Twelve Data-nyckel.'
+      : `Kunde inte läsa analysen (${e.message}).`, 'info');
+  }
+}
+
+// ---------- Live ----------
+async function hamtaLive() {
+  const nyckel = lager.hamta('nyckel');
+  const url = new URL('https://api.twelvedata.com/time_series');
+  url.search = new URLSearchParams({ symbol: 'XAU/USD', interval: t.intervall, outputsize: '1000', timezone: 'UTC', apikey: nyckel }).toString();
+  const svar = await fetch(url);
+  const j = await svar.json();
+  if (j.status === 'error' || !Array.isArray(j.values)) throw new Error(j.message || `HTTP ${svar.status}`);
+  const staplar = j.values.map((v) => ({ t: Date.parse(v.datetime.replace(' ', 'T') + 'Z'), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
+    .filter((s) => [s.t, s.o, s.h, s.l, s.c].every(Number.isFinite)).sort((a, b) => a.t - b.t);
+  return staplar;
+}
+
+async function liveRunda() {
+  $('prisytan').classList.add('vantar');
+  try {
+    const alla = await hamtaLive();
+    const min = INTERVALL_MIN[t.intervall];
+    const stangda = taBortPagaende(alla, min);
+    const analys = analysera(stangda, { intervallMin: min });
+    const nyHandelser = t.liveForra && t.liveForra.intervall === t.intervall ? grupperaHandelser(handelser(t.liveForra.analys, analys)) : [];
+    t.live = {
+      analys, senastePris: alla.at(-1).c, kalla: 'Twelve Data, XAU/USD (spotpris)', intervallMin: min,
+      intervallText: { '5min': '5 minuter', '15min': '15 minuter', '1h': '1 timme' }[t.intervall],
+    };
+    t.liveForra = { analys, intervall: t.intervall };
+    if (t.lage === 'live') {
+      satStatus(`Live · ${t.live.intervallText} · ${klockFmt.format(new Date())}`, 'live');
+      visaMeddelande('');
+      rendera();
+    }
+    for (const h of nyHandelser) visaNotis(h);
+  } catch (e) {
+    satStatus('Live · fel', 'fel');
+    visaMeddelande(`Live-läget kunde inte hämta priser: ${e.message}. Försöker igen om en minut.`, 'fel');
+  } finally {
+    $('prisytan').classList.remove('vantar');
+  }
+}
+
+function visaNotis(h) {
+  const ruta = $('notisruta');
+  ruta.textContent = `${h.titel}\n${h.text}`;
+  ruta.style.display = 'block';
+  clearTimeout(visaNotis.timer);
+  visaNotis.timer = setTimeout(() => { ruta.style.display = 'none'; }, 12000);
+  const amne = lager.hamta('amne');
+  if ($('liveNotiser').checked && amne) {
+    const etikett = { '5min': '5 min', '15min': '15 min', '1h': '1 tim' }[t.intervall];
+    // Skickas utan Content-Type-huvud så att webbläsaren inte behöver en extra CORS-förfrågan.
+    fetch('https://ntfy.sh/', {
+      method: 'POST',
+      body: JSON.stringify({ topic: amne, title: `[Live ${etikett}] ${h.titel}`, message: h.text, priority: h.prioritet || 3, click: location.href.split('?')[0] }),
+    }).catch(() => {});
+  }
+}
+
+function startaLive() {
+  if (!lager.hamta('nyckel')) {
+    visaMeddelande('Live-läget behöver en gratis API-nyckel från Twelve Data. Lägg in den under Inställningar.', 'info');
+    oppnaInstallningar();
+    return;
+  }
+  t.lage = 'live';
+  $('knappLive').setAttribute('aria-pressed', 'true');
+  $('knappMoln').setAttribute('aria-pressed', 'false');
+  $('liveIntervall').hidden = false;
+  $('liveNotisRad').hidden = false;
+  satStatus('Live · startar …', 'live');
+  clearInterval(t.liveTimer);
+  liveRunda();
+  t.liveTimer = setInterval(liveRunda, 60000);
+}
+
+function stoppaLive() {
+  clearInterval(t.liveTimer);
+  t.lage = 'moln';
+  t.liveForra = null;
+  $('knappLive').setAttribute('aria-pressed', 'false');
+  $('knappMoln').setAttribute('aria-pressed', 'true');
+  $('liveIntervall').hidden = true;
+  $('liveNotisRad').hidden = true;
+  visaMeddelande('');
+  if (t.moln) { satStatus(`Moln · uppdaterad ${t.moln.uppdaterad ? klockFmt.format(new Date(Date.parse(t.moln.uppdaterad))) : ''}`); rendera(); }
+  else laddaMoln();
+}
+
+// ---------- Inställningar ----------
+function oppnaInstallningar() {
+  $('falNyckel').value = lager.hamta('nyckel');
+  $('falAmne').value = lager.hamta('amne');
+  $('falKapital').value = lager.hamta('kapital');
+  $('installningar').showModal();
+}
+$('installningar').addEventListener('close', () => {
+  if ($('installningar').returnValue !== 'spara') return;
+  lager.spara('nyckel', $('falNyckel').value.trim());
+  lager.spara('amne', $('falAmne').value.trim());
+  lager.spara('kapital', $('falKapital').value.trim());
+  visaMeddelande('');
+  rendera();
+});
+
+// ---------- Händelser ----------
+$('knappMoln').addEventListener('click', stoppaLive);
+$('knappLive').addEventListener('click', () => { if (t.lage !== 'live') startaLive(); });
+$('knappInstallningar').addEventListener('click', oppnaInstallningar);
+$('liveIntervall').value = t.intervall;
+$('liveIntervall').addEventListener('change', (e) => { t.intervall = e.target.value; lager.spara('intervall', t.intervall); t.liveForra = null; liveRunda(); });
+$('liveNotiser').checked = lager.hamta('liveNotiser') === 'ja';
+$('liveNotiser').addEventListener('change', (e) => lager.spara('liveNotiser', e.target.checked ? 'ja' : 'nej'));
+document.querySelectorAll('.flikar button').forEach((b) => {
+  b.setAttribute('aria-pressed', String(b.dataset.niva === t.niva));
+  b.addEventListener('click', () => {
+    t.niva = b.dataset.niva; lager.spara('niva', t.niva);
+    document.querySelectorAll('.flikar button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    rendera();
+  });
+});
+let storleksTimer;
+window.addEventListener('resize', () => { clearTimeout(storleksTimer); storleksTimer = setTimeout(rendera, 150); });
+
+laddaMoln();
+setInterval(() => laddaMoln(true), 5 * 60000);
+</script>
+</body>
+</html>
