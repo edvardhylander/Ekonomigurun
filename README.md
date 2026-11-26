@@ -7,6 +7,7 @@ Guldbot bevakar 23 marknader dygnet runt: guld, silver, olja, valutor, index, ak
 - **Live (när du tradar):** Välj ett instrument i dashboarden och tryck på *Live*. Då analyseras det varje minut på 5-minuters-, 15-minuters- eller timstaplar.
 - **Nulägesanalys:** En knapp som analyserar alla instrument direkt och sammanfattar läget.
 - **Mina positioner:** Tryck *Jag köpte lång* eller *Jag köpte kort* när du har köpt. Boten bevakar då positionen var 2–3:e minut och skickar en notis när reglerna säger sälj, och varför.
+- **Ekonomi:** En egen sida för hela din ekonomi: tradingresultat och statistik, långsiktigt sparande, budget, mål med kalkylator och framtida utgifter. Avslutade affärer kommer in automatiskt.
 
 > Guldbot visar vad fasta tekniska regler säger. Det är inte investeringsrådgivning, och historiska resultat är ingen garanti för framtiden.
 
@@ -79,6 +80,32 @@ Nyckeln sparas bara i den webbläsaren och gäller bara guldbot-repot. Du kan ta
 - Tryck på ett instrument för detaljer: risknivåkort, längre läge med dagsgraf, timgraf, analys, senaste signaler och historik.
 - Notiser från boten länkar direkt till rätt instrument.
 - **Live** finns för instrument som hämtas från Twelve Data: guld, silver, valutorna, USA-aktierna och krypto.
+
+---
+
+## Ekonomi
+
+Knappen **Ekonomi →** överst i dashboarden öppnar sidan för din egen ekonomi (`ekonomi.html`). Allt fyller du i själv, och sidan räknar ut resten. Om du vill se hur den fungerar först kan du trycka på *Testa med exempeldata*.
+
+| Flik | Innehåll |
+|---|---|
+| **Översikt** | Nettoförmögenhet och hur den har vuxit jämfört med det du har satt in. Månadens sparande mot planen, tradingresultat, vad som är kvar i budgeten, hur många månader i rad du har nått sparmålet, nästa milstolpe och hur mycket du har om 10 år i nuvarande takt |
+| **Trading** | Resultat för månaden, året eller all tid. Träffsäkerhet, snitt per affär, profit factor, största vinst och förlust, största nedgång, resultatkurva, resultat per månad och per instrument |
+| **Sparande** | Dina konton (trading, långsiktigt, buffert, pension) med värde, insättningar och avkastning |
+| **Budget** | Inkomster och utgifter per månad, utfall mot plan, sparkvot och en knapp som registrerar månadens sparande på en gång |
+| **Mål och kalkylator** | Mål kopplade till konton: om du är i fas, hur mycket du behöver spara eller vilken avkastning som krävs, och när du når målet i nuvarande takt. Kalkylatorn räknar ränta på ränta och vad som krävs för att nå ett belopp till ett visst datum |
+| **Framtida utgifter** | Större utgifter som kommer, engångs eller varje år, och hur mycket du behöver lägga undan per månad. Summan dras automatiskt från budgeten |
+
+**Allt hänger ihop.** När du trycker *Jag har sålt* i Guldbot och fyller i insats och vad du fick tillbaka, hamnar affären under Trading och resultatet läggs till på tradingkontot. Det i sin tur ändrar förmögenheten och målen. Insättningar och uttag räknas på kontona, och dina framtida utgifter minskar det som blir kvar i budgeten. Avslutade affärer som saknar belopp listas under Trading, så att du kan fylla i dem i efterhand.
+
+**Uppdatera kontovärdena** då och då med det värde banken visar (*Uppdatera värde*). Insättningar efter det datumet räknas på automatiskt. Avkastningen räknas som värdet minus allt du har satt in.
+
+### Lagring och lösenfras
+- **Utan GitHub-nyckel** sparas uppgifterna bara i den webbläsaren.
+- **Med GitHub-nyckel** kan du slå på krypterad synk under fliken *Lagring*. Uppgifterna sparas då i `docs/data/ekonomi.krypterad.json` i repot, krypterade med en lösenfras som du väljer (AES-256, nyckeln härleds med PBKDF2). Repot är publikt, men filen går inte att läsa utan lösenfrasen. På varje ny enhet låser du upp en gång, och kan välja att enheten ska komma ihåg lösenfrasen.
+- **Glömmer du lösenfrasen går uppgifterna inte att få tillbaka.** Ladda därför ner en säkerhetskopia då och då under *Lagring*. Kopian är okrypterad, så spara den på ett säkert ställe.
+
+Beräkningarna bygger på det du fyller i och på antagen avkastning. De är ett planeringsverktyg, inga löften.
 
 ---
 
@@ -228,6 +255,10 @@ Svenska aktier har `.ST` på slutet hos Yahoo. Fler instrument från Twelve Data
 | `docs/bevakning.json` | Bevakningslistan |
 | `docs/data/` | Analyserna. Skapas av boten, så rör dem inte |
 | `docs/positioner.json` | Dina registrerade positioner. Skrivs av dashboarden |
+| `docs/ekonomi.html` | Ekonomisidan |
+| `docs/ekonomi-berakning.js` | Beräkningarna för ekonomisidan: ränta på ränta, mål, budget, tradingstatistik |
+| `docs/ekonomi-lagring.js` | Krypterad lagring för ekonomisidan |
+| `docs/github.js`, `docs/diagram.js` | Delar som sidorna använder: GitHub-anrop och diagram |
 | `scripts/run.mjs` | Molnskriptet för tim- och dagsanalysen |
 | `scripts/positioner.mjs` | Molnskriptet som bevakar dina positioner |
 | `scripts/gemensam.mjs` | Delar som båda molnskripten använder: prisdata och notiser |

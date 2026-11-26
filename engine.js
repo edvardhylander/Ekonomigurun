@@ -668,3 +668,219 @@ export function handelserLangre(forra, nu, namn) {
   }
   return ut;
 }
+
+// ---------- Egna positioner: säljanalys ----------
+// När du har registrerat ett köp (lång eller kort) bevakas det på 5-minutersstaplar.
+// Stop och mål kommer från vald risknivå (eller dina egna nivåer). Analysen säger BEHÅLL, VARNING eller SÄLJ och varför.
+
+export const POSITION = {
+  beVidR: 1,            // när affären som mest gått +1R flyttas stoppen till köppriset
+  slapVidR: 1.5,        // från +1,5R följer stoppen med: bästa pris sedan köpet minus 1 ATR (timme)
+  slapAtr: 1,
+  narStopR: 0.25,       // varning när priset är inom 0,25R från stoppen
+  barriarVarnAtr: 1.5,  // varning när turbons barriär är närmare än 1,5 ATR
+  barriarSaljAtr: 0.5,  // säljsignal när barriären är närmare än 0,5 ATR
+  overkopt: 75, oversalt: 25,
+  momentumStaplar: 6,   // en EMA-korsning mot positionen på 5-minutersstaplar inom de senaste 30 minuterna
+  paminnelseMin: 30, maxPaminnelser: 4,
+  stopFlyttR: 0.5,      // ny notis om släpande stop när den flyttats minst 0,5R sedan förra notisen
+};
+
+const nollad = (v, dec) => (Math.abs(v) < 0.5 * 10 ** -dec ? 0 : v);
+const signProcent = (p, dec = 1) => { const v = nollad(p, dec); return `${v > 0 ? '+' : ''}${tal(v, dec)} %`; };
+const signRText = (r) => { const v = nollad(r, 2); return `${v > 0 ? '+' : ''}${tal(v)}R`; };
+
+export function positionsRegelText() {
+  const P = POSITION;
+  return `Stop och mål från vald risknivå (eller dina egna). Säljsignal när stoppen nås, målet nås, timtrenden vänder mot dig ` +
+    `(EMA 9 korsar EMA 21 och priset hamnar på fel sida) eller priset är närmare än ${P.barriarSaljAtr} ATR från turbons barriär. ` +
+    `Varning vid vänt momentum på 5-minutersstaplar, överköpt/översålt läge (RSI ${P.overkopt}/${P.oversalt}) och när priset närmar sig stoppen eller barriären. ` +
+    `Vid +${P.beVidR}R flyttas stoppen till köppriset och från +${P.slapVidR}R följer den med (bästa pris minus ${P.slapAtr} ATR).`;
+}
+
+// Slår ihop staplar till längre staplar, t.ex. 5-minuters till timmar.
+export function aggregera(staplar, minuter) {
+  const ms = minuter * 60000;
+  const ut = [];
+  let akt = null;
+  for (const s of staplar) {
+    const b = Math.floor(s.t / ms) * ms;
+    if (!akt || akt.t !== b) {
+      if (akt) ut.push(akt);
+      akt = { t: b, o: s.o, h: s.h, l: s.l, c: s.c, sista: s.t };
+    } else {
+      akt.h = Math.max(akt.h, s.h); akt.l = Math.min(akt.l, s.l); akt.c = s.c; akt.sista = s.t;
+    }
+  }
+  if (akt) ut.push(akt);
+  return ut;
+}
+
+export function analyseraPosition(pos, staplar5, { dec = 2, valuta = '', prisNu = null, kostnadProc = 0.04, risk: fastRisk = null } = {}) {
+  const P = POSITION;
+  const steg = 5 * 60000;
+  if (staplar5.length < 60) throw new Error('För lite prisdata för att analysera positionen.');
+  let h1 = aggregera(staplar5, 60);
+  const sistaTimme = h1[h1.length - 1];
+  if (sistaTimme && sistaTimme.sista + steg < sistaTimme.t + 3600000) h1 = h1.slice(0, -1); // timmen pågår
+  if (h1.length < 30) throw new Error('För lite timdata för att analysera positionen.');
+
+  const c5 = staplar5.map((s) => s.c), c1 = h1.map((s) => s.c);
+  const e9_5 = ema(c5, 9), e21_5 = ema(c5, 21), rsi5 = rsi(c5, 14);
+  const e9_1 = ema(c1, 9), e21_1 = ema(c1, 21), rsi1 = rsi(c1, 14);
+  const atr1 = atr(h1.map((s) => s.h), h1.map((s) => s.l), c1, 14);
+  const i5 = staplar5.length - 1, i1 = h1.length - 1;
+  const pris = prisNu ?? c5[i5];
+  const dir = pos.riktning === -1 ? -1 : 1;
+  const niva = NIVAER[pos.niva] || NIVAER.medel;
+  const f = (v) => tal(v, dec);
+
+  // Timmen då köpet gjordes, och ATR just före köpet
+  let j1 = h1.findIndex((s) => s.t + 3600000 > pos.inT);
+  if (j1 < 0) j1 = i1;
+  const atrIn = atr1[Math.max(0, j1 - 1)] ?? atr1[i1];
+  const atrNu = atr1[i1] ?? atrIn;
+  // Risken låses vid första analysen (fastRisk), så att stop och mål inte flyttar sig när nya timmar tillkommer.
+  const risk = pos.stop ? Math.abs(pos.inPris - pos.stop) : fastRisk || niva.stopAtr * atrIn;
+  const startStop = pos.stop ?? pos.inPris - dir * risk;
+  const mal = pos.mal ?? pos.inPris + dir * risk * niva.malR;
+  const malR = Math.abs(mal - pos.inPris) / risk;
+
+  // Hur affären har gått sedan köpet
+  const efter = staplar5.filter((s) => s.t + steg > pos.inT);
+  const basta = efter.length ? (dir === 1 ? Math.max(...efter.map((s) => s.h)) : Math.min(...efter.map((s) => s.l))) : pos.inPris;
+  const samsta = efter.length ? (dir === 1 ? Math.min(...efter.map((s) => s.l)) : Math.max(...efter.map((s) => s.h))) : pos.inPris;
+  const bastaR = Math.max(0, ((basta - pos.inPris) * dir) / risk);
+  const r = ((pris - pos.inPris) * dir) / risk;
+  const procU = (100 * (pris - pos.inPris) * dir) / pos.inPris;
+
+  // Föreslagen stop just nu
+  let stop = startStop, stopTyp = 'start';
+  const kost = (pos.inPris * kostnadProc) / 100;
+  if (bastaR >= P.beVidR) {
+    const be = pos.inPris + dir * kost;
+    if ((be - stop) * dir > 0) { stop = be; stopTyp = 'break-even'; }
+  }
+  if (bastaR >= P.slapVidR) {
+    const sl = basta - dir * P.slapAtr * atrNu;
+    if ((sl - stop) * dir > 0) { stop = sl; stopTyp = 'släpande'; }
+  }
+
+  const skal = [];
+  const lagg = (allvar, kod, text) => skal.push({ allvar, kod, text });
+
+  // --- Säljsignaler ---
+  if ((samsta - startStop) * dir <= 0 && stopTyp === 'start') {
+    lagg('salj', 'stop', `Stop-lossen ${f(startStop)} har nåtts (${dir === 1 ? 'lägsta' : 'högsta'} pris sedan köpet ${f(samsta)}). Enligt reglerna säljer du för att begränsa förlusten.`);
+  } else if ((pris - stop) * dir <= 0) {
+    lagg('salj', 'stop', stopTyp === 'start'
+      ? `Priset ${f(pris)} har passerat stop-lossen ${f(stop)}. Enligt reglerna säljer du för att begränsa förlusten.`
+      : stopTyp === 'break-even'
+        ? `Priset ${f(pris)} är tillbaka vid köppriset (${f(stop)}). Sälj så att affären inte blir en förlust.`
+        : `Priset ${f(pris)} har passerat den släpande stoppen ${f(stop)}. Sälj för att säkra vinsten.`);
+  } else if (r >= malR) {
+    lagg('salj', 'mal', `Målet ${f(mal)} (${tal(malR, 1)}R) är nått. Enligt reglerna tar du hem vinsten här.`);
+  }
+  const relation = (k) => Math.sign(e9_1[k] - e21_1[k]);
+  if (e9_1[i1] != null && e21_1[i1] != null && relation(i1) === -dir) {
+    let korsadEfterKop = false;
+    for (let k = Math.max(1, j1); k <= i1; k++) if (relation(k) === -dir && relation(k - 1) !== -dir) korsadEfterKop = true;
+    if (korsadEfterKop && (c1[i1] - e21_1[i1]) * dir < 0) {
+      lagg('salj', 'timtrend', `Timtrenden har vänt: EMA 9 har korsat EMA 21 ${dir === 1 ? 'nedåt' : 'uppåt'} på timstaplar och priset ligger på fel sida om EMA 21.`);
+    }
+  }
+  if (pos.barriar) {
+    const kvar = (pris - pos.barriar) * dir;
+    if (kvar <= P.barriarSaljAtr * atrNu) {
+      lagg('salj', 'barriar', `Priset är bara ${f(Math.max(0, kvar))} ${valuta} från turbons barriär ${f(pos.barriar)}. Stor risk för knock-out.`);
+    } else if (kvar <= P.barriarVarnAtr * atrNu) {
+      lagg('varning', 'barriar', `Priset närmar sig turbons barriär ${f(pos.barriar)}: ${f(kvar)} ${valuta} kvar (${tal(kvar / atrNu, 1)} ATR).`);
+    }
+  }
+
+  // --- Varningar ---
+  const avstStop = (pris - stop) * dir;
+  if (!skal.some((s) => s.kod === 'stop') && avstStop > 0 && avstStop <= P.narStopR * risk) {
+    lagg('varning', 'narstop', `Priset ligger nära stoppen ${f(stop)} (${f(avstStop)} ${valuta} kvar).`);
+  }
+  let kors5 = false;
+  for (let k = Math.max(1, i5 - P.momentumStaplar + 1); k <= i5; k++) {
+    const nu = Math.sign(e9_5[k] - e21_5[k]), fore = Math.sign(e9_5[k - 1] - e21_5[k - 1]);
+    if (nu === -dir && fore !== -dir && staplar5[k].t >= pos.inT) kors5 = true;
+  }
+  if (kors5 && (dir === 1 ? rsi5[i5] < 45 : rsi5[i5] > 55)) {
+    lagg('varning', 'momentum', `Kortsiktigt momentum har vänt: EMA 9 korsade EMA 21 ${dir === 1 ? 'nedåt' : 'uppåt'} på 5-minutersstaplar (RSI ${tal(rsi5[i5], 0)}).`);
+  }
+  if (dir === 1 && rsi1[i1] >= P.overkopt) lagg('varning', 'overkopt', `Överköpt på timstaplar (RSI ${tal(rsi1[i1], 0)}). Risk för rekyl – överväg att ta hem en del av vinsten.`);
+  if (dir === -1 && rsi1[i1] <= P.oversalt) lagg('varning', 'oversalt', `Översålt på timstaplar (RSI ${tal(rsi1[i1], 0)}). Risk för studs uppåt – överväg att ta hem en del av vinsten.`);
+
+  // --- Information ---
+  if (stopTyp === 'break-even') lagg('info', 'be', `Affären har som mest gått ${signRText(bastaR)}. Enligt reglerna flyttas stoppen till köppriset (${f(stop)}).`);
+  if (stopTyp === 'släpande') lagg('info', 'slap', `Släpande stop: ${f(stop)} (bästa pris sedan köpet ${f(basta)} minus ${P.slapAtr} ATR).`);
+
+  const status = skal.some((s) => s.allvar === 'salj') ? 'SALJ' : skal.some((s) => s.allvar === 'varning') ? 'VARNING' : 'BEHALL';
+  const KORT = { stop: 'stoppen nådd', mal: 'målet nått', timtrend: 'timtrenden har vänt', barriar: 'nära barriären', narstop: 'nära stoppen', momentum: 'momentum har vänt', overkopt: 'överköpt', oversalt: 'översålt' };
+  const etiketter = (allvar) => skal.filter((s) => s.allvar === allvar).map((s) => KORT[s.kod]).filter(Boolean);
+  const sammanfattning = status === 'SALJ' ? `Säljsignal: ${etiketter('salj').join(', ')}`
+    : status === 'VARNING' ? `Bevaka: ${etiketter('varning').join(', ')}`
+      : `Behåll – läget går enligt plan (${signRText(r)})`;
+  return {
+    status, sammanfattning, skal, pris, procU, r, bastaR, risk, stop, stopTyp, startStop, mal, malR,
+    turboProc: pos.havstang ? procU * pos.havstang : null,
+    senastT: staplar5[i5].t, dec, valuta,
+    ind: { rsi5: rsi5[i5], rsi1: rsi1[i1], atr1: atrNu, ema9h: e9_1[i1], ema21h: e21_1[i1] },
+  };
+}
+
+// Jämför två analyser av samma position och avgör vilka notiser som ska skickas.
+export function positionsHandelser(forra, nu, pos, namn, tidNu = Date.now()) {
+  const P = POSITION;
+  const d = nu.dec ?? 2;
+  const minne = { ...(forra?.minne || {}) };
+  const rubrik = `${namn} (${pos.riktning === -1 ? 'kort' : 'lång'})`;
+  const lage = `Läget: ${signProcent(nu.procU, 2)} på underliggande${nu.turboProc != null ? `, ca ${signProcent(nu.turboProc)} på turbon` : ''} (${signRText(nu.r)}). Pris ${tal(nu.pris, d)}.`;
+  const forraKoder = new Set((forra?.skal || []).map((s) => s.kod));
+  const ut = [];
+  if (!forra) {
+    ut.push({
+      typ: 'start', prioritet: 2, titel: `Bevakar ${rubrik}`,
+      text: `Stop ${tal(nu.stop, d)} · mål ${tal(nu.mal, d)}. Du får en notis när reglerna ger en säljsignal. ${lage}`,
+    });
+    minne.stopNotis = nu.stop;
+  }
+  // När säljsignalen redan gäller skickas bara nya skäl om barriären (knock-out); annars räcker påminnelserna.
+  const nyaSalj = nu.skal.filter((s) => s.allvar === 'salj' && !forraKoder.has(s.kod) && (forra?.status !== 'SALJ' || s.kod === 'barriar'));
+  const nyaVarn = nu.skal.filter((s) => s.allvar === 'varning' && !forraKoder.has(s.kod));
+  if (nu.status === 'SALJ') {
+    if (forra?.status !== 'SALJ' || nyaSalj.length) {
+      ut.push({ typ: 'salj', prioritet: 5, titel: `Säljsignal: ${rubrik}`, text: [...nu.skal.filter((s) => s.allvar === 'salj').map((s) => s.text), lage].join('\n') });
+      minne.saljT = tidNu; minne.paminnelser = 0;
+    } else if (minne.saljT && tidNu - minne.saljT >= P.paminnelseMin * 60000 && (minne.paminnelser || 0) < P.maxPaminnelser) {
+      ut.push({ typ: 'paminnelse', prioritet: 4, titel: `Påminnelse – säljsignal: ${rubrik}`, text: [nu.sammanfattning + '.', lage, 'Tryck på "Jag har sålt" i dashboarden när du har sålt.'].join('\n') });
+      minne.saljT = tidNu; minne.paminnelser = (minne.paminnelser || 0) + 1;
+    }
+  } else {
+    minne.saljT = null;
+    // Samma varning skickas högst en gång per halvtimme, så att den inte tjatar när priset pendlar runt en nivå.
+    const varnT = { ...(minne.varnT || {}) };
+    const skickas = nyaVarn.filter((s) => !varnT[s.kod] || tidNu - varnT[s.kod] >= P.paminnelseMin * 60000);
+    if (skickas.length) {
+      ut.push({ typ: 'varning', prioritet: 4, titel: `Varning: ${rubrik}`, text: [...skickas.map((s) => s.text), lage].join('\n') });
+      for (const s of skickas) varnT[s.kod] = tidNu;
+    }
+    minne.varnT = varnT;
+    const stopFlyttad = nu.stopTyp !== 'start' && (nu.stopTyp !== forra?.stopTyp ||
+      (nu.stopTyp === 'släpande' && minne.stopNotis != null && (nu.stop - minne.stopNotis) * (pos.riktning === -1 ? -1 : 1) >= P.stopFlyttR * nu.risk));
+    if (forra && stopFlyttad) {
+      ut.push({
+        typ: 'stop', prioritet: 3, titel: `Flytta stoppen: ${rubrik}`,
+        text: nu.stopTyp === 'break-even'
+          ? `Affären har som mest gått ${signRText(nu.bastaR)}. Flytta stoppen till köppriset ${tal(nu.stop, d)}, så kan den inte bli en förlust. ${lage}`
+          : `Ny släpande stop: ${tal(nu.stop, d)}. ${lage}`,
+      });
+      minne.stopNotis = nu.stop;
+    }
+  }
+  nu.minne = minne;
+  return ut;
+}

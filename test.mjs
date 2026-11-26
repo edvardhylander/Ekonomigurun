@@ -2,7 +2,12 @@
 // för att se vilka notiser boten skulle ha skickat. Kör: npm test
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { analysera, analyseraLangre, handelser, handelserLangre, grupperaHandelser, taBortPagaende, taBortPagaendeDag, tolkaTid } from '../docs/engine.js';
+import {
+  analysera, analyseraLangre, handelser, handelserLangre, grupperaHandelser, taBortPagaende, taBortPagaendeDag, tolkaTid,
+  aggregera, analyseraPosition, positionsHandelser,
+} from '../docs/engine.js';
+import * as E from '../docs/ekonomi-berakning.js';
+import { kryptera, dekryptera, normalisera, laggTillAffarIData, tomEkonomi } from '../docs/ekonomi-lagring.js';
 
 const fil = new URL('../test-data/syntetiska-staplar.json', import.meta.url);
 if (!existsSync(fil)) execFileSync(process.execPath, [new URL('./gen-testdata.mjs', import.meta.url).pathname]);
@@ -78,6 +83,78 @@ kontroll(taBortPagaendeDag([{ t: Date.UTC(2026, 10, 22) }, { t: Date.UTC(2026, 1
 // 8. Instrumentnamn och decimaler i notiser
 const fx = analysera(alla.map((s) => ({ ...s, o: s.o / 3500, h: s.h / 3500, l: s.l / 3500, c: s.c / 3500 })), { intervallMin: 60, dec: 5, valuta: 'USD' });
 kontroll(fx.dec === 5 && fx.analys.find((x) => x.rubrik === 'Nivåer').text.includes(','), 'valutapar får fler decimaler');
+
+// 9. Egna positioner
+{
+  const femmor = [];
+  let p = 4000;
+  const t0 = Date.UTC(2026, 10, 16);
+  for (let k = 0; k < 2000; k++) { const o = p; p = o * (1 + Math.sin(k / 37) * 0.0006); femmor.push({ t: t0 + k * 300000, o, h: Math.max(o, p) * 1.0002, l: Math.min(o, p) * 0.9998, c: p }); }
+  const timmar = aggregera(femmor, 60);
+  kontroll(timmar.length === Math.ceil(2000 / 12) && timmar[0].h >= Math.max(...femmor.slice(0, 12).map((x) => x.h)) - 1e-9, '5-minutersstaplar slås ihop till timmar');
+  const sista = femmor.at(-1).c;
+  const lang = { id: 'x', instrument: 'guld', riktning: 1, niva: 'medel', inPris: sista, inT: femmor.at(-1).t, stop: sista - 20, mal: sista + 40 };
+  const kopia = (pris) => [...femmor, { t: femmor.at(-1).t + 300000, o: sista, h: Math.max(sista, pris), l: Math.min(sista, pris), c: pris }];
+  const vinst = analyseraPosition(lang, kopia(sista + 41));
+  kontroll(vinst.status === 'SALJ' && vinst.skal.some((x) => x.kod === 'mal'), 'säljsignal när målet nås');
+  const forlust = analyseraPosition(lang, kopia(sista - 21));
+  kontroll(forlust.status === 'SALJ' && forlust.skal.some((x) => x.kod === 'stop'), 'säljsignal när stoppen nås');
+  const kort = analyseraPosition({ ...lang, riktning: -1, stop: sista + 20, mal: sista - 40 }, kopia(sista - 41));
+  kontroll(kort.status === 'SALJ' && kort.r > 1.9, 'kort position: målet nås när priset faller');
+  const halv = analyseraPosition(lang, kopia(sista + 22));
+  kontroll(halv.stopTyp === 'break-even' && Math.abs(halv.stop - sista) < 5, 'stoppen flyttas till köppriset vid +1R');
+  const barr = analyseraPosition({ ...lang, barriar: sista - 3 }, kopia(sista - 1));
+  kontroll(barr.skal.some((x) => x.kod === 'barriar'), 'varning eller säljsignal nära turbons barriär');
+  const forsta = positionsHandelser(null, halv, lang, 'Guld', 0);
+  kontroll(forsta.length >= 1 && forsta[0].typ === 'start', 'första analysen ger notisen "Bevakar"');
+  const s1 = positionsHandelser(halv, vinst, lang, 'Guld', 60000);
+  const s2 = positionsHandelser(vinst, { ...vinst, minne: undefined }, lang, 'Guld', 120000);
+  kontroll(s1.some((h) => h.typ === 'salj') && !s2.some((h) => h.typ === 'salj'), 'säljsignalen skickas en gång, sedan bara påminnelser');
+}
+
+// 10. Ekonomi: ränta på ränta
+const nara = (a, b, tol = 1) => Math.abs(a - b) <= tol;
+kontroll(nara(E.slutvarde(10000, 2000, 7, 120), 361775), 'slutvärde med månadssparande (10 000 + 2 000/mån, 7 %, 10 år)');
+kontroll(nara(E.slutvarde(E.slutvarde(0, 0, 0, 0) + 5000, 0, 10, 12), 5500), 'ett år med 10 % avkastning');
+const krav = E.kravManadsspar(1e6, 10000, 7, 120);
+kontroll(nara(E.slutvarde(10000, krav, 7, 120), 1e6), 'krav på månadssparande ger målet');
+const kravA = E.kravAvkastning(1e6, 10000, 5000, 120);
+kontroll(nara(E.slutvarde(10000, 5000, kravA, 120), 1e6, 5), 'krav på avkastning ger målet');
+kontroll(E.manaderTill(100000, 10000, 2000, 7) === 40, 'antal månader till 100 000');
+kontroll(E.kravAvkastning(1e9, 0, 100, 12) === null, 'orimligt mål ger inget avkastningskrav');
+
+// 11. Ekonomi: konton, trading, budget, utgifter, mål
+const ek = normalisera({
+  konton: [
+    { id: 'k1', namn: 'ISK', typ: 'langsiktigt', manadssparande: 3000, avkastning: 7, varden: [{ datum: '2026-01-01', varde: 50000 }, { datum: '2026-10-31', varde: 81000 }], transaktioner: [{ id: 't0', datum: '2026-05-25', belopp: 3000 }, { id: 't1', datum: '2026-11-25', belopp: 3000 }] },
+    { id: 'k2', namn: 'Trading', typ: 'trading', varden: [{ datum: '2026-09-01', varde: 20000 }], transaktioner: [] },
+  ],
+  affarer: [{ id: 'a1', datum: '2026-10-02', instrument: 'Guld', insats: 2000, resultat: 600 }, { id: 'a2', datum: '2026-11-03', instrument: 'Guld', insats: 2000, resultat: -300 }, { id: 'a3', datum: '2026-11-20', instrument: 'Silver', insats: 1500, resultat: 450, avgift: 20 }],
+  budget: { inkomster: [{ id: 'i', belopp: 16000 }], utgifter: [{ id: 'u', belopp: 9000 }], utfall: { '2026-11': { u: 9500 } } },
+  utgifter: [{ id: 'f', namn: 'Försäkring', belopp: 6000, datum: '2026-03-15', aterkommande: 'ar', sparat: 1000 }],
+});
+kontroll(E.kontoVarde(ek.konton[0], ek, '2026-11-26') === 84000, 'kontovärde = senaste värde + insättningar efter');
+kontroll(E.kontoUtveckling(ek.konton[0], ek, '2026-11-26').avkastning === 28000, 'avkastning räknas utan insättningar');
+kontroll(E.kontoVarde(ek.konton[1], ek, '2026-11-26') === 20730, 'tradingkontot får realiserade resultat efter avgifter');
+const ts = E.tradingStatistik(ek.affarer);
+kontroll(ts.summa === 730 && ts.antal === 3 && nara(ts.traffProc, 66.67, 0.01) && ts.maxNedgang === 300, 'tradingstatistik (summa, träff, största nedgång)');
+const up = E.utgiftsplan(ek.utgifter, '2026-11-26')[0];
+kontroll(up.nastaDatum === '2027-03-15' && up.perManad === 1250, 'återkommande utgift flyttas till nästa år och delas per månad');
+const bs = E.budgetSammanfattning(ek, '2026-11', '2026-11-26');
+kontroll(bs.utgifterUtfall === 9500 && bs.sparande === 3000 && nara(bs.kvar, 16000 - 9500 - 3000 - 1250), 'budget: utfall, sparande och avsättningar');
+const mp = E.malPrognos({ belopp: 300000, datum: '2029-06-01', kontoIds: ['k1'] }, ek, '2026-11-26');
+kontroll(mp.nuvarande === 84000 && !mp.iFas && nara(E.slutvarde(84000, mp.kravSpar, 7, mp.manader), 300000), 'målprognos med kopplat konto');
+kontroll(E.formogenhetsserie(ek, '2026-11-26').at(-1).varde === 104730, 'förmögenhetsserien slutar på dagens värde');
+
+// 12. Ekonomi: kryptering
+const kuvert = await kryptera(ek, 'en lång lösenfras');
+kontroll(!JSON.stringify(kuvert).includes('ISK') && kuvert.format === 'guldbot-ekonomi', 'krypterad fil innehåller inga läsbara uppgifter');
+kontroll((await dekryptera(kuvert, 'en lång lösenfras')).konton.length === 2, 'rätt lösenfras dekrypterar');
+let felLosen = false;
+try { await dekryptera(kuvert, 'fel fras'); } catch { felLosen = true; }
+kontroll(felLosen, 'fel lösenfras avvisas');
+const tomt = tomEkonomi();
+kontroll(laggTillAffarIData(tomt, { posId: 'p1', resultat: 5 }) && !laggTillAffarIData(tomt, { posId: 'p1', resultat: 5 }), 'samma affär från Guldbot läggs inte in två gånger');
 
 console.log(fel ? `\n${fel} fel` : '\nAlla tester gick igenom');
 process.exit(fel ? 1 : 0);

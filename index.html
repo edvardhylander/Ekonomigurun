@@ -87,6 +87,7 @@
     padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
   }
   .prick { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+  .lank { font-size: 14px; text-decoration: none; color: var(--text-secondary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
   .status.live .prick { background: var(--good-text); animation: puls 1.6s infinite; }
   .status.fel .prick { background: var(--critical); }
   @keyframes puls { 50% { opacity: .35; } }
@@ -182,6 +183,9 @@
   dialog form { display: grid; gap: 14px; }
   dialog label { display: grid; gap: 5px; font-size: 14px; }
   dialog input { padding: 9px 10px; border: 1px solid var(--axis); border-radius: 8px; background: var(--page); }
+  dialog input, dialog select { width: 100%; min-width: 0; }
+  dialog form > *, dialog .tva > * { min-width: 0; }
+  dialog { max-height: calc(100dvh - 28px); overflow-y: auto; }
   .notisruta {
     position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: min(520px, calc(100vw - 28px));
     background: var(--text-primary); color: var(--surface-1); padding: 12px 14px; border-radius: 12px; font-size: 14px;
@@ -226,6 +230,30 @@
   ul.logg li.klickbar { cursor: pointer; }
   ul.logg li.klickbar:hover .titel { text-decoration: underline; }
   button:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* Nuläge och positioner */
+  .nulagegrupp { margin-top: 12px; }
+  .nulagegrupp h3 { font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+  .nulagegrupp ul { list-style: none; margin: 0; padding: 0; display: grid; }
+  .nulagegrupp li button {
+    width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--grid);
+    padding: 7px 2px; cursor: pointer; color: inherit; font: inherit; font-size: 14px; display: flex; gap: 8px; justify-content: space-between;
+  }
+  .nulagegrupp li:first-child button { border-top: 0; }
+  .nulagegrupp li button:hover { background: var(--surface-2); }
+  .nulagegrupp li button span:last-child { color: var(--text-secondary); text-align: right; }
+  .chip.salj { background: color-mix(in srgb, var(--critical) 22%, var(--surface-1)); border-color: var(--critical); }
+  .chip.varning { background: color-mix(in srgb, var(--warning) 22%, var(--surface-1)); border-color: color-mix(in srgb, var(--warning) 70%, transparent); }
+  .chip.behall { background: color-mix(in srgb, var(--good-text) 14%, var(--surface-1)); border-color: color-mix(in srgb, var(--good-text) 45%, transparent); }
+  .position { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 12px; display: grid; gap: 8px; }
+  .position:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+  .position .sammanfattning { font-weight: 600; color: var(--text-primary); }
+  ul.skal { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+  ul.skal li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; color: var(--text-secondary); }
+  .knapprad { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tva { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  dialog select { padding: 9px 10px; border: 1px solid var(--axis); border-radius: 8px; background: var(--page); }
+  .knapp.lang-knapp, .knapp.kort-knapp { font-weight: 600; }
 </style>
 </head>
 <body>
@@ -233,7 +261,10 @@
   <header class="card" aria-live="polite">
     <div class="rad mellan">
       <div class="varumarke"><span class="tacka" aria-hidden="true"></span>Guldbot</div>
-      <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
+      <div class="rad">
+        <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
+        <a class="lank" href="ekonomi.html">Ekonomi →</a>
+      </div>
     </div>
     <div>
       <div class="small secondary" id="prisrubrik">–</div>
@@ -244,6 +275,23 @@
     </div>
     <p class="sammanfattning" id="sammanfattning"></p>
   </header>
+
+  <section class="card" id="positionskort" aria-labelledby="positionsrubrik" hidden>
+    <div class="rad mellan">
+      <h2 id="positionsrubrik">Mina positioner</h2>
+      <span class="small muted" id="positionsinfo"></span>
+    </div>
+    <div id="positioner" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card" aria-labelledby="nulagerubrik">
+    <div class="rad mellan">
+      <h2 id="nulagerubrik">Nuläge</h2>
+      <button type="button" class="knapp primar" id="knappNulage">Nulägesanalys</button>
+    </div>
+    <p class="small muted" id="nulagestatus" style="margin-top:6px"></p>
+    <div id="nulage"></div>
+  </section>
 
   <section class="card" aria-labelledby="oversiktrubrik">
     <div class="rad mellan">
@@ -276,6 +324,10 @@
     </select>
     <label class="vaxel" id="liveNotisRad" hidden><input type="checkbox" id="liveNotiser"> Notiser till mobilen under live</label>
     <button type="button" class="knapp" id="knappInstallningar">Inställningar</button>
+  </div>
+  <div class="knapprad" role="group" aria-label="Registrera köp">
+    <button type="button" class="knapp lang-knapp" id="knappKopLang">▲ Jag köpte lång</button>
+    <button type="button" class="knapp kort-knapp" id="knappKopKort">▼ Jag köpte kort</button>
   </div>
   <div id="meddelande" hidden></div>
 
@@ -345,6 +397,14 @@
     <label>ntfy-ämne (för notiser under live-läget)
       <input id="falAmne" autocomplete="off" spellcheck="false" placeholder="samma ämne som i molnet">
     </label>
+    <label>GitHub-nyckel (för Nulägesanalys och positionsbevakning i molnet)
+      <input id="falGithub" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <span class="small muted">En fine-grained nyckel som bara gäller ditt guldbot-repo, med behörigheterna Contents och Actions (läsa och skriva). Se README.</span>
+    </label>
+    <label>GitHub-repo
+      <input id="falRepo" autocomplete="off" spellcheck="false" placeholder="användarnamn/guldbot">
+      <span class="small muted" id="falRepoInfo"></span>
+    </label>
     <label>Ditt tradingkapital i kronor (valfritt)
       <input id="falKapital" inputmode="decimal" placeholder="t.ex. 20000">
       <span class="small muted">Används för att räkna ut ungefärlig insats per affär utifrån risknivån.</span>
@@ -356,10 +416,65 @@
   </form>
 </dialog>
 
+<dialog id="kopdialog">
+  <form method="dialog" id="kopform">
+    <h2 id="kopRubrik">Registrera köp</h2>
+    <p class="small secondary" id="kopInfo"></p>
+    <label>Pris på underliggande när du köpte
+      <input id="kopPris" inputmode="decimal" required>
+    </label>
+    <label>Risknivå för stop och mål
+      <select id="kopNiva">
+        <option value="lag">Låg risk (stop 2 ATR)</option>
+        <option value="medel" selected>Medelrisk (stop 1,5 ATR)</option>
+        <option value="hog">Hög risk (stop 1 ATR)</option>
+      </select>
+    </label>
+    <div class="tva">
+      <label>Stop-loss <input id="kopStop" inputmode="decimal" required></label>
+      <label>Mål <input id="kopMal" inputmode="decimal" required></label>
+    </div>
+    <div class="tva">
+      <label>Turbons hävstång (valfri) <input id="kopHav" inputmode="decimal" placeholder="t.ex. 10"></label>
+      <label>Turbons barriär (valfri) <input id="kopBarriar" inputmode="decimal"></label>
+    </div>
+    <label>Insatt belopp i kronor (valfritt)
+      <input id="kopBelopp" inputmode="decimal" placeholder="t.ex. 2000">
+      <span class="small muted">Används bara för att visa ungefärligt resultat i kronor. Sparas bara i den här webbläsaren.</span>
+    </label>
+    <p class="small muted" id="kopVar"></p>
+    <div class="rad" style="justify-content:flex-end">
+      <button class="knapp" value="avbryt" formnovalidate>Avbryt</button>
+      <button class="knapp primar" value="spara">Starta bevakning</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="saljdialog">
+  <form method="dialog">
+    <h2 id="saljRubrik">Jag har sålt</h2>
+    <label>Pris på underliggande när du sålde
+      <input id="saljPris" inputmode="decimal" placeholder="valfritt">
+    </label>
+    <div class="tva">
+      <label>Insats i kronor <input id="saljInsats" inputmode="decimal" placeholder="t.ex. 2000"></label>
+      <label>Fick tillbaka i kronor <input id="saljTillbaka" inputmode="decimal" placeholder="t.ex. 2450"></label>
+    </div>
+    <p class="small muted">Fyll i beloppen så hamnar resultatet automatiskt under Trading på ekonomisidan. Positionen tas bort från bevakningen och sparas i historiken.</p>
+    <div class="rad" style="justify-content:flex-end">
+      <button class="knapp" value="avbryt" formnovalidate>Avbryt</button>
+      <button class="knapp primar" value="spara">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="notisruta" id="notisruta" role="status"></div>
 
 <script type="module">
-import { analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText, tolkaTid } from './engine.js';
+import {
+  analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText, tolkaTid, analyseraPosition, positionsHandelser,
+} from './engine.js';
+import { registreraAffar } from './ekonomi-lagring.js';
 
 // ---------- Hjälpare ----------
 const $ = (id) => document.getElementById(id);
@@ -383,6 +498,76 @@ const lager = {
   hamta(k, std = '') { try { return localStorage.getItem('guldbot.' + k) ?? std; } catch { return std; } },
   spara(k, v) { try { localStorage.setItem('guldbot.' + k, v); } catch { /* privat läge */ } },
 };
+// ---------- GitHub (din egen nyckel, sparas bara i webbläsaren) ----------
+function base64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+const sov = (ms) => new Promise((r) => setTimeout(r, ms));
+const gh = {
+  repo() {
+    const sparad = lager.hamta('repo').trim();
+    if (sparad) return sparad;
+    const m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+    if (!m) return '';
+    const forsta = location.pathname.split('/').filter(Boolean)[0];
+    return forsta && !forsta.includes('.') ? `${m[1]}/${forsta}` : `${m[1]}/${m[1]}.github.io`;
+  },
+  nyckel() { return lager.hamta('ghnyckel').trim(); },
+  aktiv() { return Boolean(this.nyckel() && this.repo()); },
+  async anrop(sokvag, { metod = 'GET', kropp, raw = false } = {}) {
+    const svar = await fetch(`https://api.github.com/repos/${this.repo()}${sokvag}`, {
+      method: metod,
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${this.nyckel()}`,
+        Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(kropp ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: kropp ? JSON.stringify(kropp) : undefined,
+    });
+    if (!svar.ok) {
+      let msg = `GitHub svarade ${svar.status}`;
+      try { const j = await svar.json(); if (j.message) msg += `: ${j.message}`; } catch { /* inget */ }
+      if (svar.status === 401) msg = 'GitHub-nyckeln fungerar inte (ogiltig eller utgången). Kontrollera den under Inställningar.';
+      if (svar.status === 403 || (svar.status === 404 && metod !== 'GET')) msg += ' – kontrollera att nyckeln har behörigheterna Contents och Actions för repot.';
+      const e = new Error(msg); e.status = svar.status; throw e;
+    }
+    if (svar.status === 204) return null;
+    return raw ? svar.text() : svar.json();
+  },
+  async lasFil(sokvag) { return JSON.parse(await this.anrop(`/contents/${sokvag}`, { raw: true })); },
+  async skrivFil(sokvag, data, meddelande) {
+    for (let forsok = 0; forsok < 3; forsok++) {
+      let sha;
+      try { sha = (await this.anrop(`/contents/${sokvag}`)).sha; } catch (e) { if (e.status !== 404) throw e; }
+      try {
+        return await this.anrop(`/contents/${sokvag}`, { metod: 'PUT', kropp: { message: meddelande, content: base64(JSON.stringify(data, null, 1)), sha } });
+      } catch (e) {
+        if (e.status !== 409 && e.status !== 422) throw e;
+        await sov(1000);
+      }
+    }
+    throw new Error('Kunde inte spara i GitHub. Försök igen.');
+  },
+  async gren() {
+    if (!this._gren) this._gren = (await this.anrop('')).default_branch || 'main';
+    return this._gren;
+  },
+  async starta(workflow, inputs) {
+    const kropp = { ref: await this.gren() };
+    if (inputs) kropp.inputs = inputs;
+    await this.anrop(`/actions/workflows/${workflow}/dispatches`, { metod: 'POST', kropp });
+  },
+  async senasteKorning(workflow, efter) {
+    const j = await this.anrop(`/actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=5`);
+    return (j.workflow_runs || []).find((r) => Date.parse(r.created_at) >= efter - 30000) || null;
+  },
+};
+
 const tidFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const klockFmt = new Intl.DateTimeFormat('sv-SE', { hour: '2-digit', minute: '2-digit' });
 const datumFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -448,7 +633,11 @@ function satMolnStatus() {
 }
 
 // ---------- Laddning ----------
+// Med GitHub-nyckel läses filerna direkt ur repot (alltid färska); annars från GitHub Pages (kan släpa några minuter).
 async function hamtaJson(url) {
+  if (gh.aktiv()) {
+    try { return await gh.lasFil(`docs/${url}`); } catch (e) { if (e.status === 404) throw new Error('saknas'); }
+  }
   const svar = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
   if (!svar.ok) throw new Error(svar.status === 404 ? 'saknas' : `HTTP ${svar.status}`);
   return svar.json();
@@ -461,10 +650,11 @@ async function laddaAllt(tyst = false) {
     visaMeddelande('Kunde inte läsa bevakning.json.', 'fel');
     return;
   }
-  const [ov, od, no] = await Promise.allSettled([hamtaJson('data/oversikt.json'), hamtaJson('data/oversikt-dag.json'), hamtaJson('data/notiser.json')]);
+  const [ov, od, no, pl] = await Promise.allSettled([hamtaJson('data/oversikt.json'), hamtaJson('data/oversikt-dag.json'), hamtaJson('data/notiser.json'), hamtaJson('data/positionslogg.json')]);
   t.oversikt = ov.status === 'fulfilled' ? ov.value : null;
   t.oversiktDag = od.status === 'fulfilled' ? od.value : null;
-  t.notiser = no.status === 'fulfilled' ? no.value.notiser || [] : [];
+  t.notiser = [...(no.status === 'fulfilled' ? no.value.notiser || [] : []), ...(pl.status === 'fulfilled' ? pl.value.notiser || [] : [])]
+    .sort((a, b) => Date.parse(b.tid) - Date.parse(a.tid));
   if (!t.vald) {
     const fran = decodeURIComponent(location.hash.slice(1));
     const sparad = lager.hamta('vald');
@@ -472,6 +662,8 @@ async function laddaAllt(tyst = false) {
   }
   renderOversikt();
   renderNotislogg();
+  renderNulage();
+  laddaPositioner();
   if (!t.oversikt) {
     if (!tyst) {
       satStatus('Moln · ingen analys ännu', 'fel');
@@ -1074,11 +1266,417 @@ function stoppaLive() {
   renderDetalj();
 }
 
+
+// ---------- Nuläge ----------
+function satNulageStatus(text, fel = false) {
+  const p = $('nulagestatus');
+  p.textContent = text;
+  p.className = `small ${fel ? 'ned' : 'muted'}`;
+}
+
+function nulagePunkt(id, vanster, hoger) {
+  const b = el('button', { type: 'button' }, el('span', { text: vanster }), el('span', { text: hoger }));
+  b.addEventListener('click', () => valjInstrument(id, true));
+  return el('li', {}, b);
+}
+
+function renderNulage() {
+  const NAMN = { lag: 'låg', medel: 'medel', hog: 'hög' };
+  const rader = t.bevakning.map(radData);
+  const aktiva = [], pavag = [], langre = [], langreVag = [];
+  for (const { ins, r, d } of rader) {
+    const dec = r?.dec ?? ins.dec ?? 2;
+    for (const riktning of [1, -1]) {
+      const o = (r?.oppna || []).filter((x) => x.riktning === riktning);
+      if (o.length) {
+        const senast = Math.max(...o.map((x) => x.inT));
+        aktiva.push({ senast, el: nulagePunkt(ins.id, `${ins.namn} – ${riktning === 1 ? '▲ lång' : '▼ kort'} (${o.map((x) => NAMN[x.niva]).join(', ')})`, `sedan ${tid(senast + 3600000)} · ${tal(r.pris, dec)}`) });
+      }
+    }
+    const setup = Object.entries(r?.lagen || {}).filter(([, v]) => v === 'SETUP').map(([k]) => NAMN[k]);
+    if (setup.length) pavag.push(nulagePunkt(ins.id, `${ins.namn} – möjligt läge på väg`, setup.join(', ')));
+    if (d?.lage === 'KOP' && d.oppen) langre.push(nulagePunkt(ins.id, `${ins.namn} – köpläge (${d.oppen.typ})`, `${datumFmt.format(new Date(d.oppen.inT))} · ${signProc(d.oppen.aktuellProc)}`));
+    else if (d?.lage === 'SETUP') langreVag.push(nulagePunkt(ins.id, `${ins.namn} – kan vara på väg`, 'dagsstaplar'));
+  }
+  const rorelse = rader.filter((x) => x.r?.dygnProc != null).sort((a, b) => Math.abs(b.r.dygnProc) - Math.abs(a.r.dygnProc)).slice(0, 3)
+    .map(({ ins, r }) => nulagePunkt(ins.id, ins.namn, `${signProc(r.dygnProc, 2)} senaste dygnet`));
+  const grupp = (rubrik, punkter, tom) => el('div', { class: 'nulagegrupp' }, el('h3', { text: `${rubrik} (${punkter.length})` }),
+    punkter.length ? el('ul', {}, ...punkter) : el('p', { class: 'small muted', text: tom }));
+  aktiva.sort((a, b) => b.senast - a.senast);
+  const delar = [
+    grupp('Aktiva kortsiktiga lägen', aktiva.map((x) => x.el), 'Inga aktiva lägen just nu.'),
+    grupp('Möjliga lägen på väg', pavag, 'Inga just nu.'),
+    grupp('Längre köplägen', [...langre, ...langreVag], 'Inga just nu.'),
+  ];
+  if (rorelse.length) delar.push(grupp('Störst rörelse', rorelse, ''));
+  $('nulage').replaceChildren(...delar);
+  if (!$('nulagestatus').textContent) {
+    const upp = t.oversikt?.meta?.uppdaterad;
+    satNulageStatus(upp ? `Från molnets senaste körning ${klockFmt.format(new Date(upp))}. Tryck på Nulägesanalys för att analysera alla instrument nu.` : 'Tryck på Nulägesanalys för att analysera alla instrument nu.');
+  }
+}
+
+async function nulagesanalys() {
+  const knapp = $('knappNulage');
+  knapp.disabled = true;
+  try {
+    if (gh.aktiv()) {
+      const start = Date.now();
+      satNulageStatus('Startar analysen av alla instrument i molnet …');
+      await gh.starta('guldanalys.yml', { lage: 'timme' });
+      let korning = null;
+      for (let varv = 0; varv < 50; varv++) {
+        await sov(8000);
+        korning = korning ? await gh.anrop(`/actions/runs/${korning.id}`) : await gh.senasteKorning('guldanalys.yml', start);
+        const sek = Math.round((Date.now() - start) / 1000);
+        if (!korning) { satNulageStatus(`Väntar på att GitHub ska starta körningen … (${sek} s)`); continue; }
+        if (korning.status === 'completed') break;
+        satNulageStatus(`Analyserar alla ${t.bevakning.length} instrument i molnet … ${sek} s (brukar ta 2–3 minuter)`);
+      }
+      if (!korning || korning.status !== 'completed') throw new Error('Körningen tar ovanligt lång tid. Titta under Actions på GitHub.');
+      if (korning.conclusion !== 'success') throw new Error(`Körningen misslyckades (${korning.conclusion}). Titta under Actions på GitHub.`);
+      for (const id of Object.keys(t.data)) t.data[id].hamtad = 0;
+      satNulageStatus('Hämtar resultatet …');
+      await laddaAllt(true);
+      satNulageStatus(`Klart ${klockFmt.format(new Date())}: alla ${t.bevakning.length} instrument analyserade nyss.`);
+    } else if (lager.hamta('nyckel')) {
+      await nulageIWebblasaren();
+    } else {
+      satNulageStatus('Nulägesanalysen behöver en GitHub-nyckel (analyserar alla instrument i molnet) eller en Twelve Data-nyckel (analyserar instrumenten från Twelve Data här i webbläsaren). Lägg in någon av dem under Inställningar.', true);
+      oppnaInstallningar();
+    }
+  } catch (e) {
+    satNulageStatus(`Nulägesanalysen misslyckades: ${e.message}`, true);
+  } finally {
+    knapp.disabled = false;
+  }
+  renderNulage();
+}
+
+// Utan GitHub-nyckel: analysera instrumenten från Twelve Data direkt här (högst 8 anrop per minut).
+async function nulageIWebblasaren() {
+  const lista = t.bevakning.filter((b) => b.kalla === 'twelvedata');
+  const nyckel = lager.hamta('nyckel');
+  for (let k = 0; k < lista.length; k++) {
+    const ins = lista[k];
+    satNulageStatus(`Analyserar ${ins.namn} (${k + 1} av ${lista.length}) i webbläsaren … Instrument från Yahoo visar molnets senaste analys.`);
+    const borjan = Date.now();
+    try {
+      const url = new URL('https://api.twelvedata.com/time_series');
+      url.search = new URLSearchParams({ symbol: ins.symbol, interval: '1h', outputsize: '1000', timezone: 'UTC', apikey: nyckel }).toString();
+      const j = await (await fetch(url)).json();
+      if (j.status === 'error' || !Array.isArray(j.values)) throw new Error(j.message || 'fel från Twelve Data');
+      const staplar = j.values.map((v) => ({ t: tolkaTid(v.datetime), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
+        .filter((x) => [x.t, x.o, x.h, x.l, x.c].every(Number.isFinite)).sort((a, b) => a.t - b.t);
+      const a = analysera(taBortPagaende(staplar, 60), { intervallMin: 60, dec: ins.dec ?? 2, valuta: ins.valuta || '', cfg: { kostnadProc: ins.kostnadProc ?? 0.04 } });
+      const data = { ...a, id: ins.id, namn: ins.namn, meta: { uppdaterad: new Date().toISOString(), kalla: `Twelve Data (${ins.symbol}), analyserad i webbläsaren`, intervall: '1 timme' } };
+      t.data[ins.id] = { ...(t.data[ins.id] || {}), timme: data, hamtad: Date.now() };
+      if (!t.oversikt) t.oversikt = { meta: {}, instrument: [] };
+      const rad = {
+        id: ins.id, namn: ins.namn, grupp: ins.grupp, live: true, pris: a.pris, dec: a.dec, valuta: a.valuta, dygnProc: a.dygnProc, senastT: a.senast.t,
+        lagen: Object.fromEntries(Object.values(a.nivaer).map((n) => [n.id, n.lage])),
+        oppna: Object.values(a.nivaer).filter((n) => n.oppen).map((n) => ({ niva: n.id, riktning: n.oppen.riktning, inT: n.oppen.inT, aktuelltR: n.oppen.aktuelltR })),
+      };
+      const i = t.oversikt.instrument.findIndex((x) => x.id === ins.id);
+      if (i >= 0) t.oversikt.instrument[i] = rad; else t.oversikt.instrument.push(rad);
+      renderOversikt();
+      renderNulage();
+      if (ins.id === t.vald) renderDetalj();
+    } catch (e) {
+      console.warn(ins.namn, e);
+    }
+    if (k < lista.length - 1) await sov(Math.max(0, 7700 - (Date.now() - borjan)));
+  }
+  satNulageStatus(`Klart ${klockFmt.format(new Date())}: ${lista.length} instrument från Twelve Data analyserade i webbläsaren. Med en GitHub-nyckel analyseras alla ${t.bevakning.length} i molnet.`);
+}
+
+// ---------- Mina positioner ----------
+const pos = { moln: [], historik: [], status: {}, lokal: [], lokalStatus: {}, timer: null };
+const lokalaPositioner = () => { try { return JSON.parse(lager.hamta('positioner', '[]')); } catch { return []; } };
+const sparaLokala = (lista) => lager.spara('positioner', JSON.stringify(lista));
+const lokalStatusLas = () => { try { return JSON.parse(lager.hamta('posstatus', '{}')); } catch { return {}; } };
+
+async function laddaPositioner() {
+  const [pj, ps] = await Promise.allSettled([hamtaJson('positioner.json'), hamtaJson('data/positionsstatus.json')]);
+  pos.moln = pj.status === 'fulfilled' ? pj.value.positioner || [] : [];
+  pos.historik = pj.status === 'fulfilled' ? pj.value.historik || [] : [];
+  pos.status = ps.status === 'fulfilled' ? ps.value.positioner || {} : {};
+  pos.lokal = lokalaPositioner();
+  pos.lokalStatus = lokalStatusLas();
+  renderPositioner();
+  styrLokalBevakning();
+}
+
+const STATUS = {
+  SALJ: { klass: 'chip salj', text: '⛔ Säljsignal' },
+  VARNING: { klass: 'chip varning', text: '⚠ Varning' },
+  BEHALL: { klass: 'chip behall', text: '✓ Behåll' },
+};
+
+function renderPositioner() {
+  const alla = [...pos.moln.map((p) => ({ p, var: 'moln' })), ...pos.lokal.map((p) => ({ p, var: 'lokal' }))];
+  $('positionskort').hidden = !alla.length;
+  $('positionsinfo').textContent = alla.length ? `${alla.length} öppna` : '';
+  $('positioner').replaceChildren(...alla.map(positionsvy));
+}
+
+function positionsvy({ p, var: plats }) {
+  const ins = insInfo(p.instrument);
+  const molnS = pos.status[p.id];
+  const lokalS = pos.lokalStatus[p.id];
+  const s = [molnS, lokalS].filter((x) => x && !x.fel).sort((a, b) => Date.parse(b.uppdaterad) - Date.parse(a.uppdaterad))[0] || molnS || lokalS;
+  const dec = ins.dec ?? 2;
+  const vy = el('article', { class: 'position', 'aria-label': `${ins.namn} ${p.riktning === -1 ? 'kort' : 'lång'}` });
+  const chip = s && !s.fel ? el('span', { class: STATUS[s.status].klass }, STATUS[s.status].text) : el('span', { class: 'chip inget' }, 'Väntar på analys');
+  const rubrikKnapp = el('button', { type: 'button', class: 'knapp', style: 'border:0; padding:0; background:transparent; font-weight:600; font-size:15px' },
+    `${ins.namn} · ${p.riktning === -1 ? '▼ Kort' : '▲ Lång'}`);
+  rubrikKnapp.addEventListener('click', () => valjInstrument(p.instrument, true));
+  vy.append(el('div', { class: 'rad mellan' }, rubrikKnapp, chip));
+  if (s && !s.fel) vy.append(el('p', { class: 'sammanfattning', text: s.sammanfattning }));
+
+  const fakta = el('dl', { class: 'fakta' });
+  const rad = (dt, dd, klass) => fakta.append(el('dt', { text: dt }), el('dd', { class: klass, text: dd }));
+  rad('Köpt', `${tal(p.inPris, dec)} · ${tid(p.inT)}`);
+  if (s && !s.fel) {
+    rad('Pris nu', tal(s.pris, dec));
+    rad('Underliggande', `${signProc(s.procU, 2)} (${signR(s.r)})`, s.procU >= 0 ? 'upp' : 'ned');
+    if (s.turboProc != null) rad(`Turbo ${tal(p.havstang, 0)}x, ca`, signProc(s.turboProc), s.turboProc >= 0 ? 'upp' : 'ned');
+    const belopp = Number(lager.hamta(`belopp.${p.id}`)) || 0;
+    if (belopp && s.turboProc != null) rad('Resultat, ca', `${s.turboProc >= 0 ? '+' : ''}${tal((belopp * s.turboProc) / 100, 0)} kr`, s.turboProc >= 0 ? 'upp' : 'ned');
+    rad(s.stopTyp === 'start' ? 'Stop' : s.stopTyp === 'break-even' ? 'Stop (flyttad till köppriset)' : 'Stop (släpande)', tal(s.stop, dec));
+    rad('Mål', `${tal(s.mal, dec)} (${tal(s.malR, 1)}R)`);
+    if (p.barriar) rad('Barriär', `${tal(p.barriar, dec)} (${tal(Math.abs(s.pris - p.barriar), dec)} kvar)`);
+  } else {
+    rad('Stop / mål', `${tal(p.stop, dec)} / ${tal(p.mal, dec)}`);
+  }
+  vy.append(fakta);
+  if (s && !s.fel && s.skal.length) {
+    const ikon = { salj: '⛔', varning: '⚠', info: 'ℹ' };
+    vy.append(el('ul', { class: 'skal' }, ...s.skal.map((x) => el('li', {}, el('span', { text: ikon[x.allvar] }), el('span', { text: x.text })))));
+  }
+  const kalla = plats === 'moln'
+    ? (molnS?.uppdaterad ? `Bevakas i molnet · senast analyserad ${klockFmt.format(new Date(molnS.uppdaterad))}` : 'Bevakas i molnet · första analysen kommer inom några minuter')
+    : (ins.kalla === 'twelvedata' ? 'Bevakas här i webbläsaren var 2:a minut medan dashboarden är öppen' : `${ins.namn} hämtas från Yahoo och kan bara bevakas i molnet. Lägg in en GitHub-nyckel.`);
+  vy.append(el('p', { class: `small ${s?.fel ? 'ned' : 'muted'}`, text: s?.fel ? `Fel vid senaste analysen: ${s.fel}` : kalla }));
+
+  const knappar = el('div', { class: 'knapprad' });
+  if (plats === 'lokal' || gh.aktiv()) {
+    const salj = el('button', { type: 'button', class: 'knapp primar' }, 'Jag har sålt');
+    salj.addEventListener('click', () => oppnaSalj(p, plats, s?.pris));
+    knappar.append(salj);
+  }
+  if (ins.kalla === 'twelvedata' && lager.hamta('nyckel')) {
+    const nu = el('button', { type: 'button', class: 'knapp' }, 'Analysera nu');
+    nu.addEventListener('click', async () => { nu.disabled = true; await analyseraLokalt(p, plats === 'lokal'); nu.disabled = false; });
+    knappar.append(nu);
+  }
+  if (plats === 'moln' && !gh.aktiv()) knappar.append(el('span', { class: 'small muted', style: 'align-self:center', text: 'Lägg in GitHub-nyckeln för att ändra.' }));
+  vy.append(knappar);
+  return vy;
+}
+
+async function hamta5min(ins) {
+  const url = new URL('https://api.twelvedata.com/time_series');
+  url.search = new URLSearchParams({ symbol: ins.symbol, interval: '5min', outputsize: '1500', timezone: 'UTC', apikey: lager.hamta('nyckel') }).toString();
+  const j = await (await fetch(url)).json();
+  if (j.status === 'error' || !Array.isArray(j.values)) throw new Error(j.message || 'fel från Twelve Data');
+  return j.values.map((v) => ({ t: tolkaTid(v.datetime), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
+    .filter((x) => [x.t, x.o, x.h, x.l, x.c].every(Number.isFinite)).sort((a, b) => a.t - b.t);
+}
+
+// Analys i webbläsaren. För lokala positioner skickas även notiser (ntfy) – molnpositionerna sköter molnet själv.
+async function analyseraLokalt(p, medNotiser) {
+  const ins = insInfo(p.instrument);
+  try {
+    const alla = await hamta5min(ins);
+    const forra = pos.lokalStatus[p.id] || pos.status[p.id];
+    const a = analyseraPosition(p, taBortPagaende(alla, 5), {
+      dec: ins.dec ?? 2, valuta: ins.valuta || '', prisNu: alla.at(-1).c, kostnadProc: ins.kostnadProc ?? 0.04, risk: forra?.risk,
+    });
+    if (medNotiser) {
+      const lista = positionsHandelser(pos.lokalStatus[p.id] || null, a, p, ins.namn, Date.now());
+      for (const h of lista) skickaPositionsnotis(h, ins);
+    } else {
+      a.minne = forra?.minne;
+    }
+    pos.lokalStatus[p.id] = { ...a, uppdaterad: new Date().toISOString() };
+    lager.spara('posstatus', JSON.stringify(pos.lokalStatus));
+  } catch (e) {
+    pos.lokalStatus[p.id] = { ...(pos.lokalStatus[p.id] || {}), fel: e.message, uppdaterad: new Date().toISOString() };
+  }
+  renderPositioner();
+}
+
+function skickaPositionsnotis(h, ins) {
+  const ruta = $('notisruta');
+  ruta.textContent = `${h.titel}\n${h.text}`;
+  ruta.style.display = 'block';
+  clearTimeout(visaNotis.timer);
+  visaNotis.timer = setTimeout(() => { ruta.style.display = 'none'; }, 15000);
+  const amne = lager.hamta('amne');
+  if (amne) {
+    fetch('https://ntfy.sh/', {
+      method: 'POST',
+      body: JSON.stringify({ topic: amne, title: h.titel, message: h.text, priority: h.prioritet || 3, click: `${location.href.split('#')[0]}#${ins.id}` }),
+    }).catch(() => {});
+  }
+}
+
+function styrLokalBevakning() {
+  clearInterval(pos.timer);
+  const bevakas = pos.lokal.filter((p) => insInfo(p.instrument).kalla === 'twelvedata');
+  if (!bevakas.length || !lager.hamta('nyckel')) return;
+  const runda = async () => { for (const p of pos.lokal) if (insInfo(p.instrument).kalla === 'twelvedata') await analyseraLokalt(p, true); };
+  runda();
+  pos.timer = setInterval(runda, 2 * 60000);
+}
+
+// --- Registrera köp ---
+const kop = { riktning: 1, redigerad: { stop: false, mal: false } };
+const tolkaTal = (v) => { const n = Number(String(v).replace(/\s/g, '').replace(',', '.')); return Number.isFinite(n) && String(v).trim() !== '' ? n : null; };
+
+function foreslaStopMal() {
+  const a = t.data[t.vald]?.timme;
+  const ins = valdInfo();
+  const pris = tolkaTal($('kopPris').value);
+  const niva = a?.nivaer?.[$('kopNiva').value];
+  if (!pris || !niva) return;
+  const avst = niva.nyttStopAvstand;
+  const dec = ins.dec ?? 2;
+  if (!kop.redigerad.stop) $('kopStop').value = (pris - kop.riktning * avst).toFixed(dec);
+  if (!kop.redigerad.mal) $('kopMal').value = (pris + kop.riktning * avst * NIVAER[niva.id].malR).toFixed(dec);
+  const hav = tolkaTal($('kopHav').value);
+  $('kopBarriar').placeholder = hav ? `ca ${(pris - (kop.riktning * pris) / hav).toFixed(dec)}` : 'från Avanza';
+}
+
+function oppnaKop(riktning) {
+  const ins = valdInfo();
+  const k = aktuell();
+  if (!ins.id || !k) { visaMeddelande('Välj ett instrument som har en analys först.', 'info'); return; }
+  kop.riktning = riktning;
+  kop.redigerad = { stop: false, mal: false };
+  const dec = ins.dec ?? 2;
+  $('kopRubrik').textContent = `Jag köpte ${riktning === 1 ? 'lång' : 'kort'}: ${ins.namn}`;
+  $('kopInfo').textContent = `Ange priset på ${ins.namn} (inte turbons pris). Stop och mål föreslås från risknivån och kan ändras.`;
+  $('kopPris').value = (k.senastePris ?? k.analys.pris).toFixed(dec);
+  $('kopHav').value = '';
+  $('kopBarriar').value = '';
+  $('kopBelopp').value = '';
+  $('kopVar').textContent = gh.aktiv()
+    ? 'Positionen sparas i ditt GitHub-repo och bevakas i molnet var 2–3:e minut, även när mobilen är låst. Du får notis när reglerna säger sälj.'
+    : ins.kalla === 'twelvedata' && lager.hamta('nyckel')
+      ? 'Utan GitHub-nyckel bevakas positionen bara medan dashboarden är öppen. Lägg in en GitHub-nyckel för bevakning i molnet.'
+      : 'Utan GitHub-nyckel kan positionen inte bevakas automatiskt. Lägg in en GitHub-nyckel under Inställningar.';
+  foreslaStopMal();
+  $('kopdialog').showModal();
+}
+
+async function sparaKop() {
+  const ins = valdInfo();
+  const p = {
+    id: `p${Date.now().toString(36)}`, instrument: ins.id, namn: ins.namn, riktning: kop.riktning, niva: $('kopNiva').value,
+    inPris: tolkaTal($('kopPris').value), inT: Date.now(), stop: tolkaTal($('kopStop').value), mal: tolkaTal($('kopMal').value),
+    oppnad: new Date().toISOString(),
+  };
+  const hav = tolkaTal($('kopHav').value), barriar = tolkaTal($('kopBarriar').value), belopp = tolkaTal($('kopBelopp').value);
+  if (hav) p.havstang = hav;
+  if (barriar) p.barriar = barriar;
+  if (!p.inPris || !p.stop || !p.mal) { visaMeddelande('Pris, stop och mål måste vara ifyllda.', 'fel'); return; }
+  if ((p.inPris - p.stop) * p.riktning <= 0 || (p.mal - p.inPris) * p.riktning <= 0) {
+    visaMeddelande(`För en ${p.riktning === 1 ? 'lång' : 'kort'} position ska stoppen ligga ${p.riktning === 1 ? 'under' : 'över'} priset och målet ${p.riktning === 1 ? 'över' : 'under'}.`, 'fel');
+    return;
+  }
+  if (belopp) lager.spara(`belopp.${p.id}`, String(belopp));
+  try {
+    if (gh.aktiv()) {
+      visaMeddelande('Sparar positionen i GitHub …', 'info');
+      let data = { positioner: [], historik: [] };
+      try { data = await gh.lasFil('docs/positioner.json'); } catch (e) { if (e.status !== 404) throw e; }
+      data.positioner = [...(data.positioner || []), p];
+      await gh.skrivFil('docs/positioner.json', data, `Ny position: ${ins.namn} ${p.riktning === 1 ? 'lång' : 'kort'}`);
+      await gh.starta('positionsbevakning.yml');
+      visaMeddelande(`Klart. Bevakningen av ${ins.namn} startar i molnet inom någon minut, och du får notisen "Bevakar ${ins.namn} (${p.riktning === 1 ? 'lång' : 'kort'})".`, 'info');
+    } else {
+      pos.lokal = [...lokalaPositioner(), p];
+      sparaLokala(pos.lokal);
+      visaMeddelande(`${ins.namn} är registrerad i den här webbläsaren.`, 'info');
+    }
+  } catch (e) {
+    visaMeddelande(`Kunde inte spara positionen: ${e.message}`, 'fel');
+    return;
+  }
+  await laddaPositioner();
+  $('positionskort').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// --- Jag har sålt ---
+let saljes = null;
+function oppnaSalj(p, plats, prisNu) {
+  saljes = { p, plats };
+  const ins = insInfo(p.instrument);
+  $('saljRubrik').textContent = `Jag har sålt: ${ins.namn} ${p.riktning === -1 ? 'kort' : 'lång'}`;
+  const kandPris = prisNu ?? t.data[p.instrument]?.timme?.pris ?? null;
+  $('saljPris').value = kandPris != null ? kandPris.toFixed(ins.dec ?? 2) : '';
+  $('saljInsats').value = lager.hamta(`belopp.${p.id}`);
+  $('saljTillbaka').value = '';
+  $('saljdialog').showModal();
+}
+
+async function sparaSalj() {
+  const { p, plats } = saljes;
+  const utPris = tolkaTal($('saljPris').value);
+  const avslutad = { ...p, utPris, utT: Date.now(), resultatProc: utPris ? (100 * (utPris - p.inPris) * p.riktning) / p.inPris : null };
+  try {
+    if (plats === 'moln') {
+      if (!gh.aktiv()) throw new Error('Lägg in GitHub-nyckeln under Inställningar för att ändra positioner i molnet.');
+      const data = await gh.lasFil('docs/positioner.json');
+      data.positioner = (data.positioner || []).filter((x) => x.id !== p.id);
+      data.historik = [avslutad, ...(data.historik || [])].slice(0, 50);
+      await gh.skrivFil('docs/positioner.json', data, `Såld: ${p.namn || p.instrument}`);
+    } else {
+      sparaLokala(lokalaPositioner().filter((x) => x.id !== p.id));
+      delete pos.lokalStatus[p.id];
+      lager.spara('posstatus', JSON.stringify(pos.lokalStatus));
+    }
+    let ekonomiText = '';
+    const insatsKr = tolkaTal($('saljInsats').value), tillbakaKr = tolkaTal($('saljTillbaka').value);
+    if (insatsKr != null && tillbakaKr != null) {
+      const var_ = await registreraAffar({
+        datum: new Date().toISOString().slice(0, 10), instrument: insInfo(p.instrument).namn, riktning: p.riktning,
+        insats: insatsKr, resultat: tillbakaKr - insatsKr, avgift: 0, kalla: 'guldbot', posId: p.id,
+      }, gh);
+      const res = `${tillbakaKr - insatsKr >= 0 ? '+' : ''}${tal(tillbakaKr - insatsKr, 0)} kr`;
+      ekonomiText = var_ === 'ko'
+        ? ` Resultatet (${res}) läggs in på ekonomisidan nästa gång du öppnar den och låser upp.`
+        : ` Resultatet (${res}) är inlagt på ekonomisidan.`;
+    }
+    visaMeddelande(`${insInfo(p.instrument).namn} är avslutad${avslutad.resultatProc != null ? ` (${signProc(avslutad.resultatProc, 2)} på underliggande)` : ''}. Bevakningen stoppas.${ekonomiText}`, 'info');
+  } catch (e) {
+    visaMeddelande(`Kunde inte spara: ${e.message}`, 'fel');
+  }
+  await laddaPositioner();
+}
+
+$('kopdialog').addEventListener('close', () => { if ($('kopdialog').returnValue === 'spara') sparaKop(); });
+$('saljdialog').addEventListener('close', () => { if ($('saljdialog').returnValue === 'spara') sparaSalj(); });
+$('kopPris').addEventListener('input', foreslaStopMal);
+$('kopNiva').addEventListener('change', () => { kop.redigerad = { stop: false, mal: false }; foreslaStopMal(); });
+$('kopHav').addEventListener('input', foreslaStopMal);
+$('kopStop').addEventListener('input', () => { kop.redigerad.stop = true; });
+$('kopMal').addEventListener('input', () => { kop.redigerad.mal = true; });
+$('knappKopLang').addEventListener('click', () => oppnaKop(1));
+$('knappKopKort').addEventListener('click', () => oppnaKop(-1));
+$('knappNulage').addEventListener('click', nulagesanalys);
+
 // ---------- Inställningar ----------
 function oppnaInstallningar() {
   $('falNyckel').value = lager.hamta('nyckel');
   $('falAmne').value = lager.hamta('amne');
   $('falKapital').value = lager.hamta('kapital');
+  $('falGithub').value = lager.hamta('ghnyckel');
+  $('falRepo').value = lager.hamta('repo');
+  $('falRepo').placeholder = gh.repo() || 'användarnamn/guldbot';
+  $('falRepoInfo').textContent = gh.repo() && !lager.hamta('repo') ? `Hittades automatiskt: ${gh.repo()}` : '';
   $('installningar').showModal();
 }
 $('installningar').addEventListener('close', () => {
@@ -1086,8 +1684,14 @@ $('installningar').addEventListener('close', () => {
   lager.spara('nyckel', $('falNyckel').value.trim());
   lager.spara('amne', $('falAmne').value.trim());
   lager.spara('kapital', $('falKapital').value.trim());
+  const ghFore = gh.nyckel() + gh.repo();
+  lager.spara('ghnyckel', $('falGithub').value.trim());
+  lager.spara('repo', $('falRepo').value.trim());
+  gh._gren = null;
   visaMeddelande('');
   renderDetalj();
+  if (gh.nyckel() + gh.repo() !== ghFore) laddaAllt(true);
+  else styrLokalBevakning();
 });
 
 // ---------- Händelser ----------
@@ -1119,6 +1723,7 @@ window.addEventListener('resize', () => { clearTimeout(storleksTimer); storleksT
 
 laddaAllt();
 setInterval(() => { if (t.lage === 'moln') laddaAllt(true); }, 5 * 60000);
+setInterval(() => { if (pos.moln.length) laddaPositioner(); }, 2 * 60000);
 </script>
 </body>
 </html>
