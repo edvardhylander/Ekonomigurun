@@ -182,12 +182,77 @@
   dialog form { display: grid; gap: 14px; }
   dialog label { display: grid; gap: 5px; font-size: 14px; }
   dialog input { padding: 9px 10px; border: 1px solid var(--axis); border-radius: 8px; background: var(--page); }
+  dialog input, dialog select { width: 100%; min-width: 0; }
+  dialog form > *, dialog .tva > * { min-width: 0; }
+  dialog { max-height: calc(100dvh - 28px); overflow-y: auto; }
   .notisruta {
     position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: min(520px, calc(100vw - 28px));
     background: var(--text-primary); color: var(--surface-1); padding: 12px 14px; border-radius: 12px; font-size: 14px;
     box-shadow: 0 8px 24px rgba(0,0,0,.25); display: none; z-index: 10; white-space: pre-line;
   }
   footer { max-width: 960px; margin: 6px auto 0; font-size: 13px; color: var(--text-muted); display: grid; gap: 6px; }
+
+  /* Översikt */
+  .filter { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 10px; }
+  .filter button {
+    border: 1px solid var(--border); background: var(--surface-1); color: var(--text-secondary);
+    padding: 5px 11px; border-radius: 999px; font-size: 13px; cursor: pointer;
+  }
+  .filter button[aria-pressed="true"] { background: var(--text-primary); color: var(--surface-1); border-color: transparent; font-weight: 600; }
+  .lista { display: grid; }
+  .instrumentrad {
+    display: grid; grid-template-columns: minmax(0, 1.4fr) auto auto minmax(0, 1.6fr); gap: 4px 14px; align-items: center;
+    width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--grid);
+    padding: 9px 4px; cursor: pointer; color: inherit; font: inherit; border-radius: 0;
+  }
+  .instrumentrad:first-child { border-top: 0; }
+  .instrumentrad:hover { background: var(--surface-2); }
+  .instrumentrad[aria-current="true"] { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--gold); }
+  .instrumentrad .namn { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .instrumentrad .namn small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; }
+  .instrumentrad .pris, .instrumentrad .delta { font-variant-numeric: tabular-nums; text-align: right; font-size: 14px; white-space: nowrap; }
+  .markorer { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .bricka {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 12px; padding: 2px 7px; border-radius: 6px;
+    border: 1px solid var(--border); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .bricka.aktiv { background: var(--text-primary); color: var(--surface-1); border-color: transparent; font-weight: 600; }
+  .bricka.setup { background: color-mix(in srgb, var(--warning) 22%, var(--surface-1)); border-color: color-mix(in srgb, var(--warning) 70%, transparent); color: var(--text-primary); }
+  .bricka.langre.aktiv { background: var(--gold); color: #0b0b0b; }
+  .instrumentrad .not { grid-column: 1 / -1; font-size: 12px; color: var(--text-muted); }
+  @media (max-width: 620px) {
+    .instrumentrad { grid-template-columns: minmax(0, 1fr) auto auto; }
+    .instrumentrad .markorer { grid-column: 1 / -1; justify-content: flex-start; }
+  }
+  .sektionsrubrik { font-size: 18px; margin: 8px 2px -2px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .sektionsrubrik small { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+  ul.logg li.klickbar { cursor: pointer; }
+  ul.logg li.klickbar:hover .titel { text-decoration: underline; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* Nuläge och positioner */
+  .nulagegrupp { margin-top: 12px; }
+  .nulagegrupp h3 { font-size: 14px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+  .nulagegrupp ul { list-style: none; margin: 0; padding: 0; display: grid; }
+  .nulagegrupp li button {
+    width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--grid);
+    padding: 7px 2px; cursor: pointer; color: inherit; font: inherit; font-size: 14px; display: flex; gap: 8px; justify-content: space-between;
+  }
+  .nulagegrupp li:first-child button { border-top: 0; }
+  .nulagegrupp li button:hover { background: var(--surface-2); }
+  .nulagegrupp li button span:last-child { color: var(--text-secondary); text-align: right; }
+  .chip.salj { background: color-mix(in srgb, var(--critical) 22%, var(--surface-1)); border-color: var(--critical); }
+  .chip.varning { background: color-mix(in srgb, var(--warning) 22%, var(--surface-1)); border-color: color-mix(in srgb, var(--warning) 70%, transparent); }
+  .chip.behall { background: color-mix(in srgb, var(--good-text) 14%, var(--surface-1)); border-color: color-mix(in srgb, var(--good-text) 45%, transparent); }
+  .position { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 12px; display: grid; gap: 8px; }
+  .position:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+  .position .sammanfattning { font-weight: 600; color: var(--text-primary); }
+  ul.skal { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+  ul.skal li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; color: var(--text-secondary); }
+  .knapprad { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tva { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  dialog select { padding: 9px 10px; border: 1px solid var(--axis); border-radius: 8px; background: var(--page); }
+  .knapp.lang-knapp, .knapp.kort-knapp { font-weight: 600; }
 </style>
 </head>
 <body>
@@ -198,14 +263,50 @@
       <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
     </div>
     <div>
-      <div class="small secondary" id="prisrubrik">Guld (XAU/USD)</div>
+      <div class="small secondary" id="prisrubrik">–</div>
       <div class="hjalte">
-        <span class="varde" id="pris">–</span><span class="enhet">USD</span>
+        <span class="varde" id="pris">–</span><span class="enhet" id="enhet"></span>
         <span class="delta" id="dygn"></span>
       </div>
     </div>
     <p class="sammanfattning" id="sammanfattning"></p>
   </header>
+
+  <section class="card" id="positionskort" aria-labelledby="positionsrubrik" hidden>
+    <div class="rad mellan">
+      <h2 id="positionsrubrik">Mina positioner</h2>
+      <span class="small muted" id="positionsinfo"></span>
+    </div>
+    <div id="positioner" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card" aria-labelledby="nulagerubrik">
+    <div class="rad mellan">
+      <h2 id="nulagerubrik">Nuläge</h2>
+      <button type="button" class="knapp primar" id="knappNulage">Nulägesanalys</button>
+    </div>
+    <p class="small muted" id="nulagestatus" style="margin-top:6px"></p>
+    <div id="nulage"></div>
+  </section>
+
+  <section class="card" aria-labelledby="oversiktrubrik">
+    <div class="rad mellan">
+      <h2 id="oversiktrubrik">Alla instrument</h2>
+      <span class="small muted" id="oversiktinfo"></span>
+    </div>
+    <div class="filter" role="group" aria-label="Filtrera" id="filter">
+      <button type="button" data-filter="alla" aria-pressed="true">Alla</button>
+      <button type="button" data-filter="lagen" aria-pressed="false">Med lägen</button>
+      <button type="button" data-filter="Råvaror och valutor" aria-pressed="false">Råvaror och valutor</button>
+      <button type="button" data-filter="Index" aria-pressed="false">Index</button>
+      <button type="button" data-filter="Aktier" aria-pressed="false">Aktier</button>
+      <button type="button" data-filter="Krypto" aria-pressed="false">Krypto</button>
+    </div>
+    <div class="lista" id="oversikt"></div>
+    <p class="small muted" style="margin-top:8px">L, M och H är låg, medel och hög risk på timstaplar: ▲ lång, ▼ kort, ◎ möjligt läge på väg. <b>Längre</b> är köplägen på dagsstaplar.</p>
+  </section>
+
+  <h2 class="sektionsrubrik" id="detaljrubrik">–</h2>
 
   <div class="kontroller" role="group" aria-label="Läge">
     <div class="segment" role="group" aria-label="Datakälla">
@@ -220,9 +321,23 @@
     <label class="vaxel" id="liveNotisRad" hidden><input type="checkbox" id="liveNotiser"> Notiser till mobilen under live</label>
     <button type="button" class="knapp" id="knappInstallningar">Inställningar</button>
   </div>
+  <div class="knapprad" role="group" aria-label="Registrera köp">
+    <button type="button" class="knapp lang-knapp" id="knappKopLang">▲ Jag köpte lång</button>
+    <button type="button" class="knapp kort-knapp" id="knappKopKort">▼ Jag köpte kort</button>
+  </div>
   <div id="meddelande" hidden></div>
 
-  <section class="nivaer" id="nivaer" aria-label="Lägen per risknivå"></section>
+  <section class="nivaer" id="nivaer" aria-label="Kortsiktiga lägen per risknivå"></section>
+
+  <section class="card" id="langrekort" aria-labelledby="langrerubrik">
+    <div class="rad mellan">
+      <h2 id="langrerubrik">Längre läge · dagsstaplar</h2>
+      <span id="langrechip"></span>
+    </div>
+    <div id="langreinnehall" style="margin-top:10px"></div>
+    <div class="legend" id="daglegend" style="margin-top:12px"></div>
+    <div class="diagram" id="dagytan"></div>
+  </section>
 
   <section class="card" id="prisdiagram">
     <div class="rad mellan">
@@ -244,7 +359,7 @@
   </section>
 
   <section class="card">
-    <div class="rad mellan"><h2 id="historikrubrik">Senaste signaler</h2></div>
+    <h2 id="historikrubrik">Senaste signaler</h2>
     <p class="small muted" style="margin:4px 0 8px">1R = det du riskerar per affär, alltså avståndet till stop-lossen. +2R betyder att vinsten blev dubbelt så stor som risken.</p>
     <div class="tabellram"><table id="historik"></table></div>
   </section>
@@ -264,7 +379,7 @@
 </main>
 
 <footer>
-  <p>Guldbot visar vad fasta tekniska regler säger om guldpriset. Det är inte investeringsrådgivning, och historiska resultat är ingen garanti för framtiden. Alla beslut om köp och sälj fattar du själv.</p>
+  <p>Guldbot visar vad fasta tekniska regler säger om priserna. Det är inte investeringsrådgivning, och historiska resultat är ingen garanti för framtiden. Alla beslut om köp och sälj fattar du själv.</p>
   <p id="kalla"></p>
 </footer>
 
@@ -278,6 +393,14 @@
     <label>ntfy-ämne (för notiser under live-läget)
       <input id="falAmne" autocomplete="off" spellcheck="false" placeholder="samma ämne som i molnet">
     </label>
+    <label>GitHub-nyckel (för Nulägesanalys och positionsbevakning i molnet)
+      <input id="falGithub" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+      <span class="small muted">En fine-grained nyckel som bara gäller ditt guldbot-repo, med behörigheterna Contents och Actions (läsa och skriva). Se README.</span>
+    </label>
+    <label>GitHub-repo
+      <input id="falRepo" autocomplete="off" spellcheck="false" placeholder="användarnamn/guldbot">
+      <span class="small muted" id="falRepoInfo"></span>
+    </label>
     <label>Ditt tradingkapital i kronor (valfritt)
       <input id="falKapital" inputmode="decimal" placeholder="t.ex. 20000">
       <span class="small muted">Används för att räkna ut ungefärlig insats per affär utifrån risknivån.</span>
@@ -289,10 +412,60 @@
   </form>
 </dialog>
 
+<dialog id="kopdialog">
+  <form method="dialog" id="kopform">
+    <h2 id="kopRubrik">Registrera köp</h2>
+    <p class="small secondary" id="kopInfo"></p>
+    <label>Pris på underliggande när du köpte
+      <input id="kopPris" inputmode="decimal" required>
+    </label>
+    <label>Risknivå för stop och mål
+      <select id="kopNiva">
+        <option value="lag">Låg risk (stop 2 ATR)</option>
+        <option value="medel" selected>Medelrisk (stop 1,5 ATR)</option>
+        <option value="hog">Hög risk (stop 1 ATR)</option>
+      </select>
+    </label>
+    <div class="tva">
+      <label>Stop-loss <input id="kopStop" inputmode="decimal" required></label>
+      <label>Mål <input id="kopMal" inputmode="decimal" required></label>
+    </div>
+    <div class="tva">
+      <label>Turbons hävstång (valfri) <input id="kopHav" inputmode="decimal" placeholder="t.ex. 10"></label>
+      <label>Turbons barriär (valfri) <input id="kopBarriar" inputmode="decimal"></label>
+    </div>
+    <label>Insatt belopp i kronor (valfritt)
+      <input id="kopBelopp" inputmode="decimal" placeholder="t.ex. 2000">
+      <span class="small muted">Används bara för att visa ungefärligt resultat i kronor. Sparas bara i den här webbläsaren.</span>
+    </label>
+    <p class="small muted" id="kopVar"></p>
+    <div class="rad" style="justify-content:flex-end">
+      <button class="knapp" value="avbryt" formnovalidate>Avbryt</button>
+      <button class="knapp primar" value="spara">Starta bevakning</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="saljdialog">
+  <form method="dialog">
+    <h2 id="saljRubrik">Jag har sålt</h2>
+    <label>Pris på underliggande när du sålde
+      <input id="saljPris" inputmode="decimal" required>
+    </label>
+    <p class="small muted">Positionen tas bort från bevakningen och sparas i historiken.</p>
+    <div class="rad" style="justify-content:flex-end">
+      <button class="knapp" value="avbryt" formnovalidate>Avbryt</button>
+      <button class="knapp primar" value="spara">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="notisruta" id="notisruta" role="status"></div>
 
 <script type="module">
-import { analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText } from './engine.js';
+import {
+  analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText, tolkaTid, analyseraPosition, positionsHandelser,
+} from './engine.js';
 
 // ---------- Hjälpare ----------
 const $ = (id) => document.getElementById(id);
@@ -316,12 +489,82 @@ const lager = {
   hamta(k, std = '') { try { return localStorage.getItem('guldbot.' + k) ?? std; } catch { return std; } },
   spara(k, v) { try { localStorage.setItem('guldbot.' + k, v); } catch { /* privat läge */ } },
 };
+// ---------- GitHub (din egen nyckel, sparas bara i webbläsaren) ----------
+function base64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+const sov = (ms) => new Promise((r) => setTimeout(r, ms));
+const gh = {
+  repo() {
+    const sparad = lager.hamta('repo').trim();
+    if (sparad) return sparad;
+    const m = location.hostname.match(/^([^.]+)\.github\.io$/i);
+    if (!m) return '';
+    const forsta = location.pathname.split('/').filter(Boolean)[0];
+    return forsta && !forsta.includes('.') ? `${m[1]}/${forsta}` : `${m[1]}/${m[1]}.github.io`;
+  },
+  nyckel() { return lager.hamta('ghnyckel').trim(); },
+  aktiv() { return Boolean(this.nyckel() && this.repo()); },
+  async anrop(sokvag, { metod = 'GET', kropp, raw = false } = {}) {
+    const svar = await fetch(`https://api.github.com/repos/${this.repo()}${sokvag}`, {
+      method: metod,
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${this.nyckel()}`,
+        Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        ...(kropp ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: kropp ? JSON.stringify(kropp) : undefined,
+    });
+    if (!svar.ok) {
+      let msg = `GitHub svarade ${svar.status}`;
+      try { const j = await svar.json(); if (j.message) msg += `: ${j.message}`; } catch { /* inget */ }
+      if (svar.status === 401) msg = 'GitHub-nyckeln fungerar inte (ogiltig eller utgången). Kontrollera den under Inställningar.';
+      if (svar.status === 403 || (svar.status === 404 && metod !== 'GET')) msg += ' – kontrollera att nyckeln har behörigheterna Contents och Actions för repot.';
+      const e = new Error(msg); e.status = svar.status; throw e;
+    }
+    if (svar.status === 204) return null;
+    return raw ? svar.text() : svar.json();
+  },
+  async lasFil(sokvag) { return JSON.parse(await this.anrop(`/contents/${sokvag}`, { raw: true })); },
+  async skrivFil(sokvag, data, meddelande) {
+    for (let forsok = 0; forsok < 3; forsok++) {
+      let sha;
+      try { sha = (await this.anrop(`/contents/${sokvag}`)).sha; } catch (e) { if (e.status !== 404) throw e; }
+      try {
+        return await this.anrop(`/contents/${sokvag}`, { metod: 'PUT', kropp: { message: meddelande, content: base64(JSON.stringify(data, null, 1)), sha } });
+      } catch (e) {
+        if (e.status !== 409 && e.status !== 422) throw e;
+        await sov(1000);
+      }
+    }
+    throw new Error('Kunde inte spara i GitHub. Försök igen.');
+  },
+  async gren() {
+    if (!this._gren) this._gren = (await this.anrop('')).default_branch || 'main';
+    return this._gren;
+  },
+  async starta(workflow, inputs) {
+    const kropp = { ref: await this.gren() };
+    if (inputs) kropp.inputs = inputs;
+    await this.anrop(`/actions/workflows/${workflow}/dispatches`, { metod: 'POST', kropp });
+  },
+  async senasteKorning(workflow, efter) {
+    const j = await this.anrop(`/actions/workflows/${workflow}/runs?event=workflow_dispatch&per_page=5`);
+    return (j.workflow_runs || []).find((r) => Date.parse(r.created_at) >= efter - 30000) || null;
+  },
+};
+
 const tidFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const klockFmt = new Intl.DateTimeFormat('sv-SE', { hour: '2-digit', minute: '2-digit' });
 const datumFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' });
-const tid = (t) => tidFmt.format(new Date(t));
-function sedan(t) {
-  const min = Math.round((Date.now() - t) / 60000);
+const tid = (tt) => tidFmt.format(new Date(tt));
+function sedan(tt) {
+  const min = Math.round((Date.now() - tt) / 60000);
   if (min < 60) return `${Math.max(min, 0)} min sedan`;
   const h = Math.round(min / 60);
   if (h < 48) return `${h} tim sedan`;
@@ -333,81 +576,265 @@ const signR = (r, dec = 2) => {
   if (Math.abs(r) < 0.5 * 10 ** -dec) return `${tal(0, dec)}R`;
   return `${r > 0 ? '+' : ''}${tal(r, dec)}R`;
 };
+const signProc = (p, dec = 1) => `${p >= 0 ? '+' : ''}${tal(p, dec)} %`;
 const RIKT = { 1: 'Lång', '-1': 'Kort' };
+const LAGETEXT = { LANG: 'lång', KORT: 'kort', SETUP: 'möjligt läge på väg', INGET: 'inget läge' };
 
 // ---------- Tillstånd ----------
 const t = {
   lage: 'moln',
-  moln: null,
+  bevakning: [],
+  oversikt: null,
+  oversiktDag: null,
+  notiser: [],
+  vald: null,
+  data: {},
   live: null,
   liveForra: null,
   liveTimer: null,
   niva: lager.hamta('niva', 'medel'),
   intervall: lager.hamta('intervall', '5min'),
+  filter: 'alla',
+  visaAlla: false,
 };
 const INTERVALL_MIN = { '5min': 5, '15min': 15, '1h': 60 };
+const INTERVALL_TEXT = { '5min': '5 minuter', '15min': '15 minuter', '1h': '1 timme' };
+const INTERVALL_STAPLAR = { '5min': '5-minutersstaplar', '15min': '15-minutersstaplar', '1h': 'timstaplar' };
+const insInfo = (id) => t.bevakning.find((b) => b.id === id) || {};
+const valdInfo = () => insInfo(t.vald);
 
-// ---------- Rendering ----------
+function aktuell() {
+  if (t.lage === 'live' && t.live && t.live.id === t.vald) return t.live;
+  const d = t.data[t.vald]?.timme;
+  return d ? { analys: d, kalla: d.meta?.kalla, intervallText: '1 timme', intervallMin: 60 } : null;
+}
+
 function visaMeddelande(text, typ = 'info') {
   const m = $('meddelande');
   if (!text) { m.hidden = true; m.textContent = ''; return; }
   m.hidden = false; m.className = `ruta ${typ}`; m.textContent = text;
 }
-
 function satStatus(text, klass = '') {
   $('status').className = `status ${klass}`;
   $('statustext').textContent = text;
 }
+function satMolnStatus() {
+  const upp = t.oversikt?.meta?.uppdaterad;
+  satStatus(upp ? `Moln · uppdaterad ${klockFmt.format(new Date(upp))}` : 'Moln');
+}
 
-function aktuell() { return t.lage === 'live' && t.live ? t.live : t.moln; }
+// ---------- Laddning ----------
+// Med GitHub-nyckel läses filerna direkt ur repot (alltid färska); annars från GitHub Pages (kan släpa några minuter).
+async function hamtaJson(url) {
+  if (gh.aktiv()) {
+    try { return await gh.lasFil(`docs/${url}`); } catch (e) { if (e.status === 404) throw new Error('saknas'); }
+  }
+  const svar = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+  if (!svar.ok) throw new Error(svar.status === 404 ? 'saknas' : `HTTP ${svar.status}`);
+  return svar.json();
+}
 
-function rendera() {
+async function laddaAllt(tyst = false) {
+  try {
+    t.bevakning = (await hamtaJson('bevakning.json')).instrument;
+  } catch {
+    visaMeddelande('Kunde inte läsa bevakning.json.', 'fel');
+    return;
+  }
+  const [ov, od, no, pl] = await Promise.allSettled([hamtaJson('data/oversikt.json'), hamtaJson('data/oversikt-dag.json'), hamtaJson('data/notiser.json'), hamtaJson('data/positionslogg.json')]);
+  t.oversikt = ov.status === 'fulfilled' ? ov.value : null;
+  t.oversiktDag = od.status === 'fulfilled' ? od.value : null;
+  t.notiser = [...(no.status === 'fulfilled' ? no.value.notiser || [] : []), ...(pl.status === 'fulfilled' ? pl.value.notiser || [] : [])]
+    .sort((a, b) => Date.parse(b.tid) - Date.parse(a.tid));
+  if (!t.vald) {
+    const fran = decodeURIComponent(location.hash.slice(1));
+    const sparad = lager.hamta('vald');
+    t.vald = t.bevakning.some((b) => b.id === fran) ? fran : t.bevakning.some((b) => b.id === sparad) ? sparad : t.bevakning[0]?.id;
+  }
+  renderOversikt();
+  renderNotislogg();
+  renderNulage();
+  laddaPositioner();
+  if (!t.oversikt) {
+    if (!tyst) {
+      satStatus('Moln · ingen analys ännu', 'fel');
+      visaMeddelande('Ingen analys finns ännu. Öppna repot på GitHub → Actions → Guldanalys → Run workflow, så skapas den första inom några minuter. Live-läget fungerar redan nu för instrument från Twelve Data om du har lagt in en nyckel.', 'info');
+    }
+  } else if (t.lage === 'moln') {
+    satMolnStatus();
+  }
+  await laddaInstrument(t.vald, true);
+}
+
+async function laddaInstrument(id, tvinga = false) {
+  if (!id) return;
+  const c = t.data[id];
+  if (c && !tvinga && Date.now() - c.hamtad < 4 * 60000) { if (id === t.vald) renderDetalj(); return; }
+  const [ti, da] = await Promise.allSettled([hamtaJson(`data/${id}.json`), hamtaJson(`data/${id}-dag.json`)]);
+  t.data[id] = { timme: ti.status === 'fulfilled' ? ti.value : null, dag: da.status === 'fulfilled' ? da.value : null, hamtad: Date.now() };
+  if (id === t.vald) renderDetalj();
+}
+
+function valjInstrument(id, scrolla = false) {
+  if (!id || !t.bevakning.some((b) => b.id === id)) return;
+  const byte = id !== t.vald;
+  t.vald = id;
+  lager.spara('vald', id);
+  if (location.hash.slice(1) !== id) history.replaceState(null, '', `#${id}`);
+  if (byte) {
+    t.live = null;
+    t.liveForra = null;
+    renderOversikt();
+    renderDetalj();
+    if (t.lage === 'live') {
+      if (valdInfo().kalla === 'twelvedata') liveRunda();
+      else { stoppaLive(); visaMeddelande(`Live finns inte för ${valdInfo().namn}, som hämtas från Yahoo. Visar molnets timanalys.`, 'info'); }
+    }
+  }
+  laddaInstrument(id).then(() => {
+    if (scrolla) $('detaljrubrik').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+// ---------- Översikt ----------
+function radData(ins) {
+  return {
+    ins,
+    r: t.oversikt?.instrument?.find((x) => x.id === ins.id) || null,
+    d: t.oversiktDag?.instrument?.find((x) => x.id === ins.id) || null,
+  };
+}
+const harLage = ({ r, d }) =>
+  Boolean(r?.oppna?.length) || Object.values(r?.lagen || {}).includes('SETUP') || d?.lage === 'KOP' || d?.lage === 'SETUP';
+function rangordning(x) {
+  const senaste = Math.max(0, ...(x.r?.oppna || []).map((o) => o.inT));
+  const grad = x.r?.oppna?.length || x.d?.lage === 'KOP' ? 2 : harLage(x) ? 1 : 0;
+  return [grad, senaste];
+}
+
+function renderOversikt() {
+  const rader = t.bevakning.map(radData).filter((x) =>
+    t.filter === 'alla' ? true : t.filter === 'lagen' ? harLage(x) : x.ins.grupp === t.filter);
+  rader.sort((a, b) => { const ka = rangordning(a), kb = rangordning(b); return kb[0] - ka[0] || kb[1] - ka[1]; });
+  // I "Alla" visas instrument med lägen först; resten fälls ihop bakom en knapp när listan är lång.
+  let visas = rader;
+  const ihop = t.filter === 'alla' && !t.visaAlla && rader.length > 10;
+  if (ihop) {
+    const medLagen = rader.filter(harLage);
+    visas = rader.slice(0, Math.max(medLagen.length, 6));
+  }
+  const delar = visas.length
+    ? visas.map(radKnapp)
+    : [el('p', { class: 'small muted', text: t.filter === 'lagen' ? 'Inga instrument har något läge just nu.' : 'Inga instrument i den här gruppen.' })];
+  if (ihop && visas.length < rader.length) {
+    const knapp = el('button', { type: 'button', class: 'knapp', style: 'margin-top:8px; justify-self:start' }, `Visa alla instrument (${rader.length - visas.length} till)`);
+    knapp.addEventListener('click', () => { t.visaAlla = true; renderOversikt(); });
+    delar.push(knapp);
+  } else if (t.filter === 'alla' && t.visaAlla && rader.length > 10) {
+    const knapp = el('button', { type: 'button', class: 'knapp', style: 'margin-top:8px; justify-self:start' }, 'Visa färre');
+    knapp.addEventListener('click', () => { t.visaAlla = false; renderOversikt(); });
+    delar.push(knapp);
+  }
+  // Det valda instrumentet ska alltid synas i listan.
+  if (!visas.some((x) => x.ins.id === t.vald)) {
+    const vald = rader.find((x) => x.ins.id === t.vald);
+    if (vald && ihop) delar.splice(visas.length, 0, radKnapp(vald));
+  }
+  $('oversikt').replaceChildren(...delar);
+  const upp = t.oversikt?.meta?.uppdaterad;
+  const antalLagen = t.bevakning.map(radData).filter(harLage).length;
+  $('oversiktinfo').textContent = `${t.bevakning.length} instrument · ${antalLagen} med lägen${upp ? ` · ${klockFmt.format(new Date(upp))}` : ''}`;
+}
+
+function radKnapp({ ins, r, d }) {
+  const dec = r?.dec ?? ins.dec ?? 2;
+  const knapp = el('button', { type: 'button', class: 'instrumentrad', 'aria-current': String(ins.id === t.vald) });
+  knapp.append(el('span', { class: 'namn' }, ins.namn, el('small', { text: ins.grupp })));
+  knapp.append(el('span', { class: 'pris', text: r?.pris != null ? tal(r.pris, dec) : '–' }));
+  const dp = r?.dygnProc;
+  knapp.append(el('span', { class: `delta ${dp == null ? '' : dp >= 0 ? 'upp' : 'ned'}`, text: dp == null ? '' : signProc(dp, 2) }));
+  const mk = el('span', { class: 'markorer' });
+  for (const [id, bokstav] of [['lag', 'L'], ['medel', 'M'], ['hog', 'H']]) {
+    const lage = r?.lagen?.[id] || 'INGET';
+    const sym = lage === 'LANG' ? '▲' : lage === 'KORT' ? '▼' : lage === 'SETUP' ? '◎' : '–';
+    const klass = lage === 'LANG' || lage === 'KORT' ? 'bricka aktiv' : lage === 'SETUP' ? 'bricka setup' : 'bricka';
+    mk.append(el('span', { class: klass, title: `${NIVAER[id].namn}: ${LAGETEXT[lage]}` }, `${bokstav} ${sym}`));
+  }
+  const dl = d?.lage || 'INGET';
+  mk.append(el('span', { class: `bricka langre ${dl === 'KOP' ? 'aktiv' : dl === 'SETUP' ? 'setup' : ''}`, title: 'Längre läge på dagsstaplar' },
+    dl === 'KOP' ? 'Längre: köp' : dl === 'SETUP' ? 'Längre ◎' : 'Längre –'));
+  knapp.append(mk);
+  if (r?.fel) knapp.append(el('span', { class: 'not', text: `Kunde inte hämta senast: ${r.fel}` }));
+  else if (r?.marknadStangd) knapp.append(el('span', { class: 'not', text: 'Marknaden stängd – senaste analysen visas.' }));
+  knapp.addEventListener('click', () => valjInstrument(ins.id, true));
+  return knapp;
+}
+
+function renderNotislogg() {
+  const logg = t.notiser || [];
+  $('notislogg').replaceChildren(...(logg.length
+    ? logg.slice(0, 25).map((n) => {
+      const li = el('li', { class: n.id ? 'klickbar' : null },
+        el('div', { class: 'tid', text: tid(Date.parse(n.tid)) }), el('div', { class: 'titel', text: n.titel }), el('div', { class: 'text', text: n.text }));
+      if (n.id) li.addEventListener('click', () => valjInstrument(n.id, true));
+      return li;
+    })
+    : [el('li', { class: 'muted', text: 'Inga notiser ännu.' })]));
+}
+
+// ---------- Detaljvy ----------
+function renderDetalj() {
+  const ins = valdInfo();
   const k = aktuell();
-  if (!k) return;
+  const dag = t.data[t.vald]?.dag;
+  const liveText = t.lage === 'live' && t.live?.id === t.vald ? `kortsiktigt på ${INTERVALL_STAPLAR[t.intervall]} (live)` : 'kortsiktigt på timstaplar';
+  $('detaljrubrik').replaceChildren(ins.namn || '–', el('small', { text: liveText }));
+  const kanLive = ins.kalla === 'twelvedata';
+  $('knappLive').disabled = !kanLive;
+  $('knappLive').title = kanLive ? '' : 'Live finns för instrument som hämtas från Twelve Data';
+  renderLangre(dag);
+
+  if (!k) {
+    $('prisrubrik').textContent = ins.namn || '–';
+    $('pris').textContent = '–';
+    $('enhet').textContent = '';
+    $('dygn').textContent = '';
+    $('sammanfattning').textContent = 'Ingen timanalys för det här instrumentet ännu.';
+    for (const id of ['nivaer', 'prislegend', 'prisytan', 'analys', 'historik', 'backtest', 'kurvlegend', 'kurvytan']) $(id).replaceChildren();
+    $('backtestinfo').textContent = '';
+    return;
+  }
   const a = k.analys;
+  const dec = a.dec ?? 2;
   const kapital = Number(String(lager.hamta('kapital')).replace(/\s/g, '').replace(',', '.')) || 0;
 
   // Huvud
-  const visatPris = k.senastePris ?? a.pris;
-  $('pris').textContent = tal(visatPris);
-  $('prisrubrik').textContent = k.senastePris != null ? 'Guld (XAU/USD) · senaste pris' : 'Guld (XAU/USD) · senast stängda stapel';
-  const dygnRad = a.analys.find((r) => r.rubrik === 'Senaste dygnet');
+  $('pris').textContent = tal(k.senastePris ?? a.pris, dec);
+  $('enhet').textContent = a.valuta || '';
+  $('prisrubrik').textContent = `${ins.namn} · ${k.senastePris != null ? 'senaste pris' : 'senast stängda stapel'}`;
   const dygn = $('dygn');
-  dygn.textContent = dygnRad ? `${dygnRad.text.replace('.', '')} senaste dygnet` : '';
-  dygn.className = 'delta ' + (dygnRad && !dygnRad.text.startsWith('−') && !dygnRad.text.startsWith('-') ? 'upp' : 'ned');
+  dygn.textContent = a.dygnProc != null ? `${signProc(a.dygnProc, 2)} senaste dygnet` : '';
+  dygn.className = 'delta ' + (a.dygnProc >= 0 ? 'upp' : 'ned');
   const trend = a.analys.find((r) => r.rubrik === 'Trend')?.text.split(' – ')[0] || '';
   const aktiva = Object.values(a.nivaer).filter((n) => n.oppen).map((n) => `${n.namn.toLowerCase()} ${RIKT[n.oppen.riktning].toLowerCase()}`);
   const setups = Object.values(a.nivaer).filter((n) => n.lage === 'SETUP');
+  const langreText = dag ? (dag.lage === 'KOP' ? ' · Längre: köpläge' : dag.lage === 'SETUP' ? ' · Längre: kan vara på väg' : '') : '';
   $('sammanfattning').textContent =
     `Trend: ${trend.toLowerCase()} · RSI ${tal(a.indikatorer.rsi, 0)} · ` +
-    (aktiva.length ? `Aktiva lägen: ${aktiva.join(', ')}` : setups.length ? `Möjligt läge på väg (${setups.map((n) => n.namn.toLowerCase()).join(', ')})` : 'Inga aktiva lägen just nu');
+    (aktiva.length ? `Aktiva lägen: ${aktiva.join(', ')}` : setups.length ? `Möjligt läge på väg (${setups.map((n) => n.namn.toLowerCase()).join(', ')})` : 'Inga aktiva lägen just nu') +
+    langreText;
 
-  // Nivåkort
-  const nivaer = $('nivaer');
-  nivaer.replaceChildren(...Object.values(a.nivaer).map((n) => nivakort(n, a, kapital, k)));
-
-  // Diagram
+  $('nivaer').replaceChildren(...Object.values(a.nivaer).map((n) => nivakort(n, a, kapital, k)));
   prisdiagram(a);
   kurvdiagram(a);
-
-  // Analystext
   $('analys').replaceChildren(...a.analys.map((r) => el('li', {}, el('b', { text: r.rubrik }), el('span', { class: 'secondary', text: r.text }))));
-
-  // Historik
   historik(a);
-  backtest(a);
-
-  // Notislogg (molnet)
-  const logg = t.moln?.notislogg || [];
-  $('notislogg').replaceChildren(...(logg.length
-    ? logg.slice(0, 15).map((n) => el('li', {}, el('div', { class: 'tid', text: tid(Date.parse(n.tid)) }), el('div', { text: n.titel }), el('div', { class: 'text', text: n.text })))
-    : [el('li', { class: 'muted', text: 'Inga notiser ännu.' })]));
-
-  // Källa
-  $('kalla').textContent = k.kalla ? `Datakälla: ${k.kalla}. Staplar: ${k.intervallText}. Signaler räknas bara på stängda staplar.` : '';
+  backtest(a, ins);
+  $('kalla').textContent = k.kalla ? `Datakälla för ${ins.namn}: ${k.kalla}. Staplar: ${k.intervallText}. Signaler räknas bara på stängda staplar.` : '';
 }
 
 function nivakort(n, a, kapital, k) {
+  const dec = a.dec ?? 2;
   const kort = el('article', { class: 'card niva', 'aria-label': n.namn });
   let chip;
   if (n.oppen) chip = el('span', { class: 'chip aktiv' }, n.oppen.riktning === 1 ? '▲ Lång' : '▼ Kort');
@@ -421,9 +848,9 @@ function nivakort(n, a, kapital, k) {
   if (n.oppen) {
     const o = n.oppen;
     rad('Signal', `${stangd(o.inT)} (${sedan(o.inT + k.intervallMin * 60000)})`);
-    rad('Pris vid signal', tal(o.inPris));
-    rad('Stop-loss', tal(o.stop));
-    rad('Mål', tal(o.mal));
+    rad('Pris vid signal', tal(o.inPris, dec));
+    rad('Stop-loss', tal(o.stop, dec));
+    rad('Mål', tal(o.mal, dec));
     rad('Läget nu', signR(o.aktuelltR), o.aktuelltR >= 0 ? 'upp' : 'ned');
     rad('Turbo, högst ca', `${o.maxHavstang}x`);
     const ins = insats(kapital, niva, o.inPris, o.risk, o.maxHavstang);
@@ -432,14 +859,13 @@ function nivakort(n, a, kapital, k) {
     if (n.setup) {
       kort.append(el('p', { class: 'small secondary', text: `EMA-linjerna är ${tal(n.setup.avstandAtr)} ATR från en korsning ${n.setup.riktning === 1 ? 'uppåt' : 'nedåt'}, och trendkraven för den här nivån är uppfyllda. Signalen kommer om korsningen sker och RSI ligger rätt.` }));
     }
-    rad('Stop vid ny signal', `ca ${tal(n.nyttStopAvstand)} USD bort`);
+    rad('Stop vid ny signal', `ca ${tal(n.nyttStopAvstand, dec)} ${a.valuta || ''} bort`);
     rad('Turbo, högst ca', `${n.nyMaxHavstang}x`);
     const ins = insats(kapital, niva, a.pris, n.nyttStopAvstand, n.nyMaxHavstang);
     if (ins) rad(`Insats vid ${n.nyMaxHavstang}x`, `ca ${tal(ins.insatsKr, 0)} kr`);
   }
   if (kapital) rad('Risk per affär', `${tal(niva.riskProc, 1)} % = ${tal((kapital * niva.riskProc) / 100, 0)} kr`);
-  const s = n.stats;
-  rad('Historiskt', `${s.antal} affärer, ${signR(s.summaR)}`);
+  rad('Historiskt', `${n.stats.antal} affärer, ${signR(n.stats.summaR)}`);
   kort.append(fakta);
   kort.append(el('details', {}, el('summary', { text: 'Regler för nivån' }), el('p', { class: 'small secondary', text: regelText(niva) })));
   return kort;
@@ -451,7 +877,74 @@ function insats(kapital, niva, pris, stopAvstand, havstang) {
   return { insatsKr: Math.min(kapital, riskKr / (havstang * (stopAvstand / pris))) };
 }
 
+function renderLangre(d) {
+  const chip = $('langrechip'), ytan = $('langreinnehall');
+  if (!d) {
+    chip.replaceChildren();
+    ytan.replaceChildren(el('p', { class: 'small muted', text: 'Ingen dagsanalys ännu. Den körs varje morgon, eller direkt via Run workflow i GitHub.' }));
+    $('daglegend').replaceChildren();
+    $('dagytan').replaceChildren();
+    return;
+  }
+  const dec = d.dec ?? 2;
+  chip.replaceChildren(d.lage === 'KOP' ? el('span', { class: 'chip aktiv' }, '● Köpläge enligt reglerna')
+    : d.lage === 'SETUP' ? el('span', { class: 'chip setup' }, '◎ Kan vara på väg')
+      : el('span', { class: 'chip inget' }, '– Inget läge'));
+  const fakta = el('dl', { class: 'fakta' });
+  const rad = (dt, dd, klass) => fakta.append(el('dt', { text: dt }), el('dd', { class: klass, text: dd }));
+  rad('Trend', { upp: 'Upptrend', ned: 'Nedtrend', blandad: 'Blandad' }[d.trend] || '–');
+  if (d.oppen) {
+    const o = d.oppen;
+    rad('Signal', `${datumFmt.format(new Date(o.inT))} · ${o.typ}`);
+    rad('Pris vid signal', tal(o.inPris, dec));
+    rad('Stop just nu', tal(o.stop, dec));
+    rad('Läget nu', `${signProc(o.aktuellProc)} (${signR(o.aktuelltR)})`, o.aktuellProc >= 0 ? 'upp' : 'ned');
+    rad('Dagar sedan signal', String(o.dagar));
+  } else {
+    rad('SMA 50 / SMA 200', `${tal(d.indikatorer.smaK, dec)} / ${tal(d.indikatorer.smaL, dec)}`);
+    rad('RSI (dag)', tal(d.indikatorer.rsi, 0));
+  }
+  const s = d.stats;
+  rad('Historiskt', `${s.antal} affärer · ${tal(s.traffProc, 0)} % träff · snitt ${signProc(s.snittProc)}`);
+  const delar = [];
+  if (d.setup) delar.push(el('p', { class: 'small secondary', style: 'margin-bottom:8px', text: d.setup.text }));
+  delar.push(fakta);
+  delar.push(el('details', { style: 'margin-top:8px' }, el('summary', { text: 'Regler för längre lägen' }), el('p', { class: 'small secondary', text: d.regler })));
+  delar.push(el('p', { class: 'small muted', style: 'margin-top:6px', text: `Historiken bygger på ${d.antalStaplar} dagar (${datumFmt.format(new Date(d.backtestFran))} – ${datumFmt.format(new Date(d.backtestTill))}).` }));
+  ytan.replaceChildren(...delar);
+
+  const sr = d.serie;
+  const idx = sr.t.map((_, i) => i);
+  const tIdx = new Map(sr.t.map((tt, i) => [tt, i]));
+  const serier = [
+    { namn: 'Pris', kort: 'Pris', farg: 'var(--series-1)', punkter: idx.map((i) => [i, sr.c[i]]) },
+    { namn: 'SMA 50', kort: 'SMA 50', farg: 'var(--series-2)', punkter: idx.map((i) => [i, sr.smaK[i]]) },
+    { namn: 'SMA 200', kort: 'SMA 200', farg: 'var(--series-3)', punkter: idx.map((i) => [i, sr.smaL[i]]) },
+  ];
+  const markorer = [];
+  for (const af of d.affarer) {
+    if (tIdx.has(af.inT)) markorer.push({ x: tIdx.get(af.inT), y: af.inPris, form: 'upp' });
+    if (tIdx.has(af.utT)) markorer.push({ x: tIdx.get(af.utT), y: af.utPris, form: 'ring' });
+  }
+  const refLinjer = [];
+  if (d.oppen) {
+    if (tIdx.has(d.oppen.inT)) markorer.push({ x: tIdx.get(d.oppen.inT), y: d.oppen.inPris, form: 'upp' });
+    refLinjer.push({ y: d.oppen.stop, etikett: 'Stop' });
+  }
+  legend($('daglegend'), [...serier.map((x) => ({ namn: x.namn, farg: x.farg })), { namn: 'Köpläge', triangel: true }, { namn: 'Avslutat', ring: true }]);
+  linjediagram($('dagytan'), {
+    serier, xFormat: (i) => datumFmt.format(new Date(sr.t[Math.round(i)])), yFormat: (v) => tal(v, dec),
+    tipsTitel: 'Dagspris med SMA 50 och SMA 200', markorer, refLinjer, hojd: 240,
+  });
+}
+
 // ---------- Linjediagram ----------
+// Antal decimaler som behövs för att visa ett axelsteg (0,25 → 2, 0,002 → 3, 50 → 0)
+function stegDecimaler(steg) {
+  if (steg >= 1) return 0;
+  return (String(Number(steg.toPrecision(2))).split('.')[1] || '').length;
+}
+
 function snyggaSteg(min, max, antal = 4) {
   const spann = max - min || 1;
   const grov = spann / antal;
@@ -469,7 +962,7 @@ function narmast(xs, x) {
 }
 
 // serier: [{ namn, farg, punkter: [[x, y], ...] }]
-function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) => tal(v), yAxelFormat = (v, steg) => tal(v, steg >= 1 ? 0 : 2), markorer = [], refLinjer = [], hojd = 300, nollLinje = false }) {
+function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) => tal(v), yAxelFormat = (v, steg) => tal(v, stegDecimaler(steg)), markorer = [], refLinjer = [], hojd = 300, nollLinje = false }) {
   yta.replaceChildren();
   const bredd = Math.max(280, yta.clientWidth || 600);
   const visaSlutEtiketter = bredd >= 560;
@@ -505,7 +998,7 @@ function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) => tal(v)
   for (const r of refLinjer) {
     if (!(r.y >= yMin && r.y <= yMax)) continue;
     sv('line', { x1: m.v, x2: m.v + W, y1: Y(r.y), y2: Y(r.y), stroke: 'var(--text-muted)', 'stroke-width': 1, 'stroke-dasharray': '4 4' }, svg);
-    const txt = sv('text', { x: m.v + 4, y: Y(r.y) - 4 }, svg); txt.textContent = `${r.etikett} ${tal(r.y)}`;
+    const txt = sv('text', { x: m.v + 4, y: Y(r.y) - 4 }, svg); txt.textContent = `${r.etikett} ${yFormat(r.y)}`;
   }
   // Linjer
   for (const s of serier) {
@@ -589,27 +1082,27 @@ function legend(mal, poster) {
   }));
 }
 
+
 function prisdiagram(a) {
+  const dec = a.dec ?? 2;
   const s = a.serie;
   const idx = s.t.map((_, i) => i);
   const tIdx = new Map(s.t.map((tt, i) => [tt, i]));
-  const xFormat = (i) => tid(s.t[Math.round(i)]);
   const serier = [
     { namn: 'Pris', kort: 'Pris', farg: 'var(--series-1)', punkter: idx.map((i) => [i, s.c[i]]) },
-    { namn: `EMA ${9}`, kort: 'EMA 9', farg: 'var(--series-2)', punkter: idx.map((i) => [i, s.emaS[i]]) },
-    { namn: `EMA ${21}`, kort: 'EMA 21', farg: 'var(--series-3)', punkter: idx.map((i) => [i, s.emaL[i]]) },
-    { namn: `EMA ${100} (trend)`, kort: 'EMA 100', farg: 'var(--series-4)', punkter: idx.map((i) => [i, s.emaT[i]]) },
+    { namn: 'EMA 9', kort: 'EMA 9', farg: 'var(--series-2)', punkter: idx.map((i) => [i, s.emaS[i]]) },
+    { namn: 'EMA 21', kort: 'EMA 21', farg: 'var(--series-3)', punkter: idx.map((i) => [i, s.emaL[i]]) },
+    { namn: 'EMA 100 (trend)', kort: 'EMA 100', farg: 'var(--series-4)', punkter: idx.map((i) => [i, s.emaT[i]]) },
   ];
   const n = a.nivaer[t.niva];
   const markorer = [];
-  const tillIdx = (tt) => (tIdx.has(tt) ? tIdx.get(tt) : null);
   for (const af of n.affarer) {
-    const i = tillIdx(af.inT); if (i != null) markorer.push({ x: i, y: af.inPris, form: af.riktning === 1 ? 'upp' : 'ned' });
-    const u = tillIdx(af.utT); if (u != null) markorer.push({ x: u, y: af.utPris, form: 'ring' });
+    if (tIdx.has(af.inT)) markorer.push({ x: tIdx.get(af.inT), y: af.inPris, form: af.riktning === 1 ? 'upp' : 'ned' });
+    if (tIdx.has(af.utT)) markorer.push({ x: tIdx.get(af.utT), y: af.utPris, form: 'ring' });
   }
   const refLinjer = [];
   if (n.oppen) {
-    const i = tillIdx(n.oppen.inT); if (i != null) markorer.push({ x: i, y: n.oppen.inPris, form: n.oppen.riktning === 1 ? 'upp' : 'ned' });
+    if (tIdx.has(n.oppen.inT)) markorer.push({ x: tIdx.get(n.oppen.inT), y: n.oppen.inPris, form: n.oppen.riktning === 1 ? 'upp' : 'ned' });
     refLinjer.push({ y: n.oppen.stop, etikett: 'Stop' }, { y: n.oppen.mal, etikett: 'Mål' });
   }
   legend($('prislegend'), [
@@ -617,12 +1110,13 @@ function prisdiagram(a) {
     { namn: `Signal (${n.namn.toLowerCase()})`, triangel: true },
     { namn: 'Utgång', ring: true },
   ]);
-  linjediagram($('prisytan'), { serier, xFormat, tipsTitel: 'Guldpris med glidande medelvärden', markorer, refLinjer, hojd: 300 });
-
-  // Tabellvy
-  const rader = s.t.map((tt, i) => i).slice(-24).reverse();
+  linjediagram($('prisytan'), {
+    serier, xFormat: (i) => tid(s.t[Math.round(i)]), yFormat: (v) => tal(v, dec),
+    tipsTitel: 'Pris med glidande medelvärden', markorer, refLinjer, hojd: 300,
+  });
+  const rader = idx.slice(-24).reverse();
   const tab = el('table', {}, el('tr', {}, ...['Tid', 'Pris', 'EMA 9', 'EMA 21', 'EMA 100'].map((h) => el('th', { text: h }))),
-    ...rader.map((i) => el('tr', {}, el('td', { text: tid(s.t[i]) }), ...[s.c[i], s.emaS[i], s.emaL[i], s.emaT[i]].map((v) => el('td', { text: tal(v) })))));
+    ...rader.map((i) => el('tr', {}, el('td', { text: tid(s.t[i]) }), ...[s.c[i], s.emaS[i], s.emaL[i], s.emaT[i]].map((v) => el('td', { text: tal(v, dec) })))));
   $('pristabell').querySelector('.tabellram').replaceChildren(tab);
 }
 
@@ -636,23 +1130,23 @@ function kurvdiagram(a) {
   legend($('kurvlegend'), serier.map((s) => ({ namn: s.namn, farg: s.farg })));
   linjediagram($('kurvytan'), {
     serier, xFormat: (x) => datumFmt.format(new Date(x)), yFormat: (v) => signR(v), yAxelFormat: (v, steg) => signR(v, steg >= 1 ? 0 : 1),
-    tipsTitel: 'Ackumulerat resultat i R per risknivå',
-    hojd: 220, nollLinje: true,
+    tipsTitel: 'Ackumulerat resultat i R per risknivå', hojd: 220, nollLinje: true,
   });
 }
 
 function historik(a) {
+  const dec = a.dec ?? 2;
   const n = a.nivaer[t.niva];
   $('historikrubrik').textContent = `Senaste signaler · ${n.namn.toLowerCase()}`;
   const rader = [];
   if (n.oppen) {
     const o = n.oppen;
-    rader.push(el('tr', {}, el('td', { text: stangd(o.inT) }), el('td', { text: RIKT[o.riktning] }), el('td', { text: tal(o.inPris) }),
+    rader.push(el('tr', {}, el('td', { text: stangd(o.inT) }), el('td', { text: RIKT[o.riktning] }), el('td', { text: tal(o.inPris, dec) }),
       el('td', { text: 'pågår' }), el('td', { text: '–' }), el('td', { class: o.aktuelltR >= 0 ? 'upp' : 'ned', text: signR(o.aktuelltR) })));
   }
   for (const af of [...n.affarer].reverse().slice(0, 12)) {
-    rader.push(el('tr', {}, el('td', { text: stangd(af.inT) }), el('td', { text: RIKT[af.riktning] }), el('td', { text: tal(af.inPris) }),
-      el('td', { text: tal(af.utPris) }), el('td', { text: af.orsak }), el('td', { class: af.r >= 0 ? 'upp' : 'ned', text: signR(af.r) })));
+    rader.push(el('tr', {}, el('td', { text: stangd(af.inT) }), el('td', { text: RIKT[af.riktning] }), el('td', { text: tal(af.inPris, dec) }),
+      el('td', { text: tal(af.utPris, dec) }), el('td', { text: af.orsak }), el('td', { class: af.r >= 0 ? 'upp' : 'ned', text: signR(af.r) })));
   }
   $('historik').replaceChildren(
     el('tr', {}, ...['Signal', 'Riktning', 'In', 'Ut', 'Orsak', 'Resultat'].map((h) => el('th', { text: h }))),
@@ -660,10 +1154,10 @@ function historik(a) {
   );
 }
 
-function backtest(a) {
+function backtest(a, ins) {
   $('backtestinfo').textContent =
-    `Reglerna körda på ${a.antalStaplar} staplar, ${datumFmt.format(new Date(a.backtestFran))} – ${datumFmt.format(new Date(a.backtestTill))}. ` +
-    `Räknat på guldpriset med 0,04 % kostnad per affär. En turbo har oftast större spread, och historiken säger inget säkert om framtiden.`;
+    `Reglerna körda på ${a.antalStaplar} staplar, ${datumFmt.format(new Date(a.backtestFran))} – ${datumFmt.format(new Date(a.backtestTill))}, ` +
+    `med ${tal(ins.kostnadProc ?? 0.04, 2)} % kostnad per affär. En turbo har oftast större spread, och historiken säger inget säkert om framtiden.`;
   const pf = (v) => (v === Infinity ? '∞' : tal(v));
   $('backtest').replaceChildren(
     el('tr', {}, ...['Nivå', 'Affärer', 'Träff', 'Summa', 'Snitt', 'Profit factor', 'Max nedgång', 'Längsta förlustsvit'].map((h) => el('th', { text: h }))),
@@ -676,63 +1170,36 @@ function backtest(a) {
   );
 }
 
-// ---------- Moln ----------
-async function laddaMoln(tyst = false) {
-  try {
-    const svar = await fetch(`data.json?t=${Date.now()}`, { cache: 'no-store' });
-    if (!svar.ok) throw new Error(svar.status === 404 ? 'ingen-data' : `HTTP ${svar.status}`);
-    const d = await svar.json();
-    t.moln = {
-      analys: d, kalla: d.meta?.kalla, intervallText: d.meta?.intervall || '1 timme', intervallMin: d.intervallMin || 60,
-      notislogg: d.notislogg || [], uppdaterad: d.meta?.uppdaterad, fel: d.meta?.fel,
-    };
-    if (t.lage === 'moln') {
-      const upp = t.moln.uppdaterad ? Date.parse(t.moln.uppdaterad) : null;
-      if (t.moln.fel) { satStatus('Moln · problem med prisdata', 'fel'); visaMeddelande(`Senaste körningen kunde inte hämta prisdata: ${t.moln.fel}. Du ser den senaste lyckade analysen.`, 'fel'); }
-      else { satStatus(upp ? `Moln · uppdaterad ${klockFmt.format(new Date(upp))}` : 'Moln'); visaMeddelande(''); }
-      rendera();
-    }
-  } catch (e) {
-    if (t.lage !== 'moln' || tyst) return;
-    satStatus('Moln · ingen analys ännu', 'fel');
-    visaMeddelande(e.message === 'ingen-data'
-      ? 'Ingen analys finns ännu. Öppna repot på GitHub → Actions → Guldanalys → Run workflow, så skapas den första inom någon minut. Live-läget fungerar redan nu om du har lagt in en Twelve Data-nyckel.'
-      : `Kunde inte läsa analysen (${e.message}).`, 'info');
-  }
-}
-
 // ---------- Live ----------
-async function hamtaLive() {
-  const nyckel = lager.hamta('nyckel');
+async function hamtaLive(ins) {
   const url = new URL('https://api.twelvedata.com/time_series');
-  url.search = new URLSearchParams({ symbol: 'XAU/USD', interval: t.intervall, outputsize: '1000', timezone: 'UTC', apikey: nyckel }).toString();
+  url.search = new URLSearchParams({ symbol: ins.symbol, interval: t.intervall, outputsize: '1000', timezone: 'UTC', apikey: lager.hamta('nyckel') }).toString();
   const svar = await fetch(url);
   const j = await svar.json();
   if (j.status === 'error' || !Array.isArray(j.values)) throw new Error(j.message || `HTTP ${svar.status}`);
-  const staplar = j.values.map((v) => ({ t: Date.parse(v.datetime.replace(' ', 'T') + 'Z'), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
-    .filter((s) => [s.t, s.o, s.h, s.l, s.c].every(Number.isFinite)).sort((a, b) => a.t - b.t);
-  return staplar;
+  return j.values.map((v) => ({ t: tolkaTid(v.datetime), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
+    .filter((s) => [s.t, s.o, s.h, s.l, s.c].every(Number.isFinite)).sort((x, y) => x.t - y.t);
 }
 
 async function liveRunda() {
+  const ins = valdInfo();
+  if (ins.kalla !== 'twelvedata') return;
   $('prisytan').classList.add('vantar');
   try {
-    const alla = await hamtaLive();
+    const alla = await hamtaLive(ins);
+    if (ins.id !== t.vald || t.lage !== 'live') return;
     const min = INTERVALL_MIN[t.intervall];
-    const stangda = taBortPagaende(alla, min);
-    const analys = analysera(stangda, { intervallMin: min });
-    const nyHandelser = t.liveForra && t.liveForra.intervall === t.intervall ? grupperaHandelser(handelser(t.liveForra.analys, analys)) : [];
-    t.live = {
-      analys, senastePris: alla.at(-1).c, kalla: 'Twelve Data, XAU/USD (spotpris)', intervallMin: min,
-      intervallText: { '5min': '5 minuter', '15min': '15 minuter', '1h': '1 timme' }[t.intervall],
-    };
-    t.liveForra = { analys, intervall: t.intervall };
-    if (t.lage === 'live') {
-      satStatus(`Live · ${t.live.intervallText} · ${klockFmt.format(new Date())}`, 'live');
-      visaMeddelande('');
-      rendera();
-    }
-    for (const h of nyHandelser) visaNotis(h);
+    const analys = analysera(taBortPagaende(alla, min), {
+      intervallMin: min, dec: ins.dec ?? 2, valuta: ins.valuta || '', cfg: { kostnadProc: ins.kostnadProc ?? 0.04 },
+    });
+    const f = t.liveForra;
+    const nya = f && f.id === ins.id && f.intervall === t.intervall ? grupperaHandelser(handelser(f.analys, analys, ins.namn)) : [];
+    t.live = { id: ins.id, analys, senastePris: alla.at(-1).c, kalla: `Twelve Data (${ins.symbol})`, intervallMin: min, intervallText: INTERVALL_TEXT[t.intervall] };
+    t.liveForra = { id: ins.id, analys, intervall: t.intervall };
+    satStatus(`Live · ${ins.namn} · ${INTERVALL_TEXT[t.intervall]} · ${klockFmt.format(new Date())}`, 'live');
+    visaMeddelande('');
+    renderDetalj();
+    for (const h of nya) visaNotis(h);
   } catch (e) {
     satStatus('Live · fel', 'fel');
     visaMeddelande(`Live-läget kunde inte hämta priser: ${e.message}. Försöker igen om en minut.`, 'fel');
@@ -753,12 +1220,13 @@ function visaNotis(h) {
     // Skickas utan Content-Type-huvud så att webbläsaren inte behöver en extra CORS-förfrågan.
     fetch('https://ntfy.sh/', {
       method: 'POST',
-      body: JSON.stringify({ topic: amne, title: `[Live ${etikett}] ${h.titel}`, message: h.text, priority: h.prioritet || 3, click: location.href.split('?')[0] }),
+      body: JSON.stringify({ topic: amne, title: `[Live ${etikett}] ${h.titel}`, message: h.text, priority: h.prioritet || 3, click: location.href }),
     }).catch(() => {});
   }
 }
 
 function startaLive() {
+  if (valdInfo().kalla !== 'twelvedata') return;
   if (!lager.hamta('nyckel')) {
     visaMeddelande('Live-läget behöver en gratis API-nyckel från Twelve Data. Lägg in den under Inställningar.', 'info');
     oppnaInstallningar();
@@ -778,21 +1246,413 @@ function startaLive() {
 function stoppaLive() {
   clearInterval(t.liveTimer);
   t.lage = 'moln';
+  t.live = null;
   t.liveForra = null;
   $('knappLive').setAttribute('aria-pressed', 'false');
   $('knappMoln').setAttribute('aria-pressed', 'true');
   $('liveIntervall').hidden = true;
   $('liveNotisRad').hidden = true;
   visaMeddelande('');
-  if (t.moln) { satStatus(`Moln · uppdaterad ${t.moln.uppdaterad ? klockFmt.format(new Date(Date.parse(t.moln.uppdaterad))) : ''}`); rendera(); }
-  else laddaMoln();
+  if (t.oversikt) satMolnStatus();
+  renderDetalj();
 }
+
+
+// ---------- Nuläge ----------
+function satNulageStatus(text, fel = false) {
+  const p = $('nulagestatus');
+  p.textContent = text;
+  p.className = `small ${fel ? 'ned' : 'muted'}`;
+}
+
+function nulagePunkt(id, vanster, hoger) {
+  const b = el('button', { type: 'button' }, el('span', { text: vanster }), el('span', { text: hoger }));
+  b.addEventListener('click', () => valjInstrument(id, true));
+  return el('li', {}, b);
+}
+
+function renderNulage() {
+  const NAMN = { lag: 'låg', medel: 'medel', hog: 'hög' };
+  const rader = t.bevakning.map(radData);
+  const aktiva = [], pavag = [], langre = [], langreVag = [];
+  for (const { ins, r, d } of rader) {
+    const dec = r?.dec ?? ins.dec ?? 2;
+    for (const riktning of [1, -1]) {
+      const o = (r?.oppna || []).filter((x) => x.riktning === riktning);
+      if (o.length) {
+        const senast = Math.max(...o.map((x) => x.inT));
+        aktiva.push({ senast, el: nulagePunkt(ins.id, `${ins.namn} – ${riktning === 1 ? '▲ lång' : '▼ kort'} (${o.map((x) => NAMN[x.niva]).join(', ')})`, `sedan ${tid(senast + 3600000)} · ${tal(r.pris, dec)}`) });
+      }
+    }
+    const setup = Object.entries(r?.lagen || {}).filter(([, v]) => v === 'SETUP').map(([k]) => NAMN[k]);
+    if (setup.length) pavag.push(nulagePunkt(ins.id, `${ins.namn} – möjligt läge på väg`, setup.join(', ')));
+    if (d?.lage === 'KOP' && d.oppen) langre.push(nulagePunkt(ins.id, `${ins.namn} – köpläge (${d.oppen.typ})`, `${datumFmt.format(new Date(d.oppen.inT))} · ${signProc(d.oppen.aktuellProc)}`));
+    else if (d?.lage === 'SETUP') langreVag.push(nulagePunkt(ins.id, `${ins.namn} – kan vara på väg`, 'dagsstaplar'));
+  }
+  const rorelse = rader.filter((x) => x.r?.dygnProc != null).sort((a, b) => Math.abs(b.r.dygnProc) - Math.abs(a.r.dygnProc)).slice(0, 3)
+    .map(({ ins, r }) => nulagePunkt(ins.id, ins.namn, `${signProc(r.dygnProc, 2)} senaste dygnet`));
+  const grupp = (rubrik, punkter, tom) => el('div', { class: 'nulagegrupp' }, el('h3', { text: `${rubrik} (${punkter.length})` }),
+    punkter.length ? el('ul', {}, ...punkter) : el('p', { class: 'small muted', text: tom }));
+  aktiva.sort((a, b) => b.senast - a.senast);
+  const delar = [
+    grupp('Aktiva kortsiktiga lägen', aktiva.map((x) => x.el), 'Inga aktiva lägen just nu.'),
+    grupp('Möjliga lägen på väg', pavag, 'Inga just nu.'),
+    grupp('Längre köplägen', [...langre, ...langreVag], 'Inga just nu.'),
+  ];
+  if (rorelse.length) delar.push(grupp('Störst rörelse', rorelse, ''));
+  $('nulage').replaceChildren(...delar);
+  if (!$('nulagestatus').textContent) {
+    const upp = t.oversikt?.meta?.uppdaterad;
+    satNulageStatus(upp ? `Från molnets senaste körning ${klockFmt.format(new Date(upp))}. Tryck på Nulägesanalys för att analysera alla instrument nu.` : 'Tryck på Nulägesanalys för att analysera alla instrument nu.');
+  }
+}
+
+async function nulagesanalys() {
+  const knapp = $('knappNulage');
+  knapp.disabled = true;
+  try {
+    if (gh.aktiv()) {
+      const start = Date.now();
+      satNulageStatus('Startar analysen av alla instrument i molnet …');
+      await gh.starta('guldanalys.yml', { lage: 'timme' });
+      let korning = null;
+      for (let varv = 0; varv < 50; varv++) {
+        await sov(8000);
+        korning = korning ? await gh.anrop(`/actions/runs/${korning.id}`) : await gh.senasteKorning('guldanalys.yml', start);
+        const sek = Math.round((Date.now() - start) / 1000);
+        if (!korning) { satNulageStatus(`Väntar på att GitHub ska starta körningen … (${sek} s)`); continue; }
+        if (korning.status === 'completed') break;
+        satNulageStatus(`Analyserar alla ${t.bevakning.length} instrument i molnet … ${sek} s (brukar ta 2–3 minuter)`);
+      }
+      if (!korning || korning.status !== 'completed') throw new Error('Körningen tar ovanligt lång tid. Titta under Actions på GitHub.');
+      if (korning.conclusion !== 'success') throw new Error(`Körningen misslyckades (${korning.conclusion}). Titta under Actions på GitHub.`);
+      for (const id of Object.keys(t.data)) t.data[id].hamtad = 0;
+      satNulageStatus('Hämtar resultatet …');
+      await laddaAllt(true);
+      satNulageStatus(`Klart ${klockFmt.format(new Date())}: alla ${t.bevakning.length} instrument analyserade nyss.`);
+    } else if (lager.hamta('nyckel')) {
+      await nulageIWebblasaren();
+    } else {
+      satNulageStatus('Nulägesanalysen behöver en GitHub-nyckel (analyserar alla instrument i molnet) eller en Twelve Data-nyckel (analyserar instrumenten från Twelve Data här i webbläsaren). Lägg in någon av dem under Inställningar.', true);
+      oppnaInstallningar();
+    }
+  } catch (e) {
+    satNulageStatus(`Nulägesanalysen misslyckades: ${e.message}`, true);
+  } finally {
+    knapp.disabled = false;
+  }
+  renderNulage();
+}
+
+// Utan GitHub-nyckel: analysera instrumenten från Twelve Data direkt här (högst 8 anrop per minut).
+async function nulageIWebblasaren() {
+  const lista = t.bevakning.filter((b) => b.kalla === 'twelvedata');
+  const nyckel = lager.hamta('nyckel');
+  for (let k = 0; k < lista.length; k++) {
+    const ins = lista[k];
+    satNulageStatus(`Analyserar ${ins.namn} (${k + 1} av ${lista.length}) i webbläsaren … Instrument från Yahoo visar molnets senaste analys.`);
+    const borjan = Date.now();
+    try {
+      const url = new URL('https://api.twelvedata.com/time_series');
+      url.search = new URLSearchParams({ symbol: ins.symbol, interval: '1h', outputsize: '1000', timezone: 'UTC', apikey: nyckel }).toString();
+      const j = await (await fetch(url)).json();
+      if (j.status === 'error' || !Array.isArray(j.values)) throw new Error(j.message || 'fel från Twelve Data');
+      const staplar = j.values.map((v) => ({ t: tolkaTid(v.datetime), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
+        .filter((x) => [x.t, x.o, x.h, x.l, x.c].every(Number.isFinite)).sort((a, b) => a.t - b.t);
+      const a = analysera(taBortPagaende(staplar, 60), { intervallMin: 60, dec: ins.dec ?? 2, valuta: ins.valuta || '', cfg: { kostnadProc: ins.kostnadProc ?? 0.04 } });
+      const data = { ...a, id: ins.id, namn: ins.namn, meta: { uppdaterad: new Date().toISOString(), kalla: `Twelve Data (${ins.symbol}), analyserad i webbläsaren`, intervall: '1 timme' } };
+      t.data[ins.id] = { ...(t.data[ins.id] || {}), timme: data, hamtad: Date.now() };
+      if (!t.oversikt) t.oversikt = { meta: {}, instrument: [] };
+      const rad = {
+        id: ins.id, namn: ins.namn, grupp: ins.grupp, live: true, pris: a.pris, dec: a.dec, valuta: a.valuta, dygnProc: a.dygnProc, senastT: a.senast.t,
+        lagen: Object.fromEntries(Object.values(a.nivaer).map((n) => [n.id, n.lage])),
+        oppna: Object.values(a.nivaer).filter((n) => n.oppen).map((n) => ({ niva: n.id, riktning: n.oppen.riktning, inT: n.oppen.inT, aktuelltR: n.oppen.aktuelltR })),
+      };
+      const i = t.oversikt.instrument.findIndex((x) => x.id === ins.id);
+      if (i >= 0) t.oversikt.instrument[i] = rad; else t.oversikt.instrument.push(rad);
+      renderOversikt();
+      renderNulage();
+      if (ins.id === t.vald) renderDetalj();
+    } catch (e) {
+      console.warn(ins.namn, e);
+    }
+    if (k < lista.length - 1) await sov(Math.max(0, 7700 - (Date.now() - borjan)));
+  }
+  satNulageStatus(`Klart ${klockFmt.format(new Date())}: ${lista.length} instrument från Twelve Data analyserade i webbläsaren. Med en GitHub-nyckel analyseras alla ${t.bevakning.length} i molnet.`);
+}
+
+// ---------- Mina positioner ----------
+const pos = { moln: [], historik: [], status: {}, lokal: [], lokalStatus: {}, timer: null };
+const lokalaPositioner = () => { try { return JSON.parse(lager.hamta('positioner', '[]')); } catch { return []; } };
+const sparaLokala = (lista) => lager.spara('positioner', JSON.stringify(lista));
+const lokalStatusLas = () => { try { return JSON.parse(lager.hamta('posstatus', '{}')); } catch { return {}; } };
+
+async function laddaPositioner() {
+  const [pj, ps] = await Promise.allSettled([hamtaJson('positioner.json'), hamtaJson('data/positionsstatus.json')]);
+  pos.moln = pj.status === 'fulfilled' ? pj.value.positioner || [] : [];
+  pos.historik = pj.status === 'fulfilled' ? pj.value.historik || [] : [];
+  pos.status = ps.status === 'fulfilled' ? ps.value.positioner || {} : {};
+  pos.lokal = lokalaPositioner();
+  pos.lokalStatus = lokalStatusLas();
+  renderPositioner();
+  styrLokalBevakning();
+}
+
+const STATUS = {
+  SALJ: { klass: 'chip salj', text: '⛔ Säljsignal' },
+  VARNING: { klass: 'chip varning', text: '⚠ Varning' },
+  BEHALL: { klass: 'chip behall', text: '✓ Behåll' },
+};
+
+function renderPositioner() {
+  const alla = [...pos.moln.map((p) => ({ p, var: 'moln' })), ...pos.lokal.map((p) => ({ p, var: 'lokal' }))];
+  $('positionskort').hidden = !alla.length;
+  $('positionsinfo').textContent = alla.length ? `${alla.length} öppna` : '';
+  $('positioner').replaceChildren(...alla.map(positionsvy));
+}
+
+function positionsvy({ p, var: plats }) {
+  const ins = insInfo(p.instrument);
+  const molnS = pos.status[p.id];
+  const lokalS = pos.lokalStatus[p.id];
+  const s = [molnS, lokalS].filter((x) => x && !x.fel).sort((a, b) => Date.parse(b.uppdaterad) - Date.parse(a.uppdaterad))[0] || molnS || lokalS;
+  const dec = ins.dec ?? 2;
+  const vy = el('article', { class: 'position', 'aria-label': `${ins.namn} ${p.riktning === -1 ? 'kort' : 'lång'}` });
+  const chip = s && !s.fel ? el('span', { class: STATUS[s.status].klass }, STATUS[s.status].text) : el('span', { class: 'chip inget' }, 'Väntar på analys');
+  const rubrikKnapp = el('button', { type: 'button', class: 'knapp', style: 'border:0; padding:0; background:transparent; font-weight:600; font-size:15px' },
+    `${ins.namn} · ${p.riktning === -1 ? '▼ Kort' : '▲ Lång'}`);
+  rubrikKnapp.addEventListener('click', () => valjInstrument(p.instrument, true));
+  vy.append(el('div', { class: 'rad mellan' }, rubrikKnapp, chip));
+  if (s && !s.fel) vy.append(el('p', { class: 'sammanfattning', text: s.sammanfattning }));
+
+  const fakta = el('dl', { class: 'fakta' });
+  const rad = (dt, dd, klass) => fakta.append(el('dt', { text: dt }), el('dd', { class: klass, text: dd }));
+  rad('Köpt', `${tal(p.inPris, dec)} · ${tid(p.inT)}`);
+  if (s && !s.fel) {
+    rad('Pris nu', tal(s.pris, dec));
+    rad('Underliggande', `${signProc(s.procU, 2)} (${signR(s.r)})`, s.procU >= 0 ? 'upp' : 'ned');
+    if (s.turboProc != null) rad(`Turbo ${tal(p.havstang, 0)}x, ca`, signProc(s.turboProc), s.turboProc >= 0 ? 'upp' : 'ned');
+    const belopp = Number(lager.hamta(`belopp.${p.id}`)) || 0;
+    if (belopp && s.turboProc != null) rad('Resultat, ca', `${s.turboProc >= 0 ? '+' : ''}${tal((belopp * s.turboProc) / 100, 0)} kr`, s.turboProc >= 0 ? 'upp' : 'ned');
+    rad(s.stopTyp === 'start' ? 'Stop' : s.stopTyp === 'break-even' ? 'Stop (flyttad till köppriset)' : 'Stop (släpande)', tal(s.stop, dec));
+    rad('Mål', `${tal(s.mal, dec)} (${tal(s.malR, 1)}R)`);
+    if (p.barriar) rad('Barriär', `${tal(p.barriar, dec)} (${tal(Math.abs(s.pris - p.barriar), dec)} kvar)`);
+  } else {
+    rad('Stop / mål', `${tal(p.stop, dec)} / ${tal(p.mal, dec)}`);
+  }
+  vy.append(fakta);
+  if (s && !s.fel && s.skal.length) {
+    const ikon = { salj: '⛔', varning: '⚠', info: 'ℹ' };
+    vy.append(el('ul', { class: 'skal' }, ...s.skal.map((x) => el('li', {}, el('span', { text: ikon[x.allvar] }), el('span', { text: x.text })))));
+  }
+  const kalla = plats === 'moln'
+    ? (molnS?.uppdaterad ? `Bevakas i molnet · senast analyserad ${klockFmt.format(new Date(molnS.uppdaterad))}` : 'Bevakas i molnet · första analysen kommer inom några minuter')
+    : (ins.kalla === 'twelvedata' ? 'Bevakas här i webbläsaren var 2:a minut medan dashboarden är öppen' : `${ins.namn} hämtas från Yahoo och kan bara bevakas i molnet. Lägg in en GitHub-nyckel.`);
+  vy.append(el('p', { class: `small ${s?.fel ? 'ned' : 'muted'}`, text: s?.fel ? `Fel vid senaste analysen: ${s.fel}` : kalla }));
+
+  const knappar = el('div', { class: 'knapprad' });
+  if (plats === 'lokal' || gh.aktiv()) {
+    const salj = el('button', { type: 'button', class: 'knapp primar' }, 'Jag har sålt');
+    salj.addEventListener('click', () => oppnaSalj(p, plats, s?.pris));
+    knappar.append(salj);
+  }
+  if (ins.kalla === 'twelvedata' && lager.hamta('nyckel')) {
+    const nu = el('button', { type: 'button', class: 'knapp' }, 'Analysera nu');
+    nu.addEventListener('click', async () => { nu.disabled = true; await analyseraLokalt(p, plats === 'lokal'); nu.disabled = false; });
+    knappar.append(nu);
+  }
+  if (plats === 'moln' && !gh.aktiv()) knappar.append(el('span', { class: 'small muted', style: 'align-self:center', text: 'Lägg in GitHub-nyckeln för att ändra.' }));
+  vy.append(knappar);
+  return vy;
+}
+
+async function hamta5min(ins) {
+  const url = new URL('https://api.twelvedata.com/time_series');
+  url.search = new URLSearchParams({ symbol: ins.symbol, interval: '5min', outputsize: '1500', timezone: 'UTC', apikey: lager.hamta('nyckel') }).toString();
+  const j = await (await fetch(url)).json();
+  if (j.status === 'error' || !Array.isArray(j.values)) throw new Error(j.message || 'fel från Twelve Data');
+  return j.values.map((v) => ({ t: tolkaTid(v.datetime), o: +v.open, h: +v.high, l: +v.low, c: +v.close }))
+    .filter((x) => [x.t, x.o, x.h, x.l, x.c].every(Number.isFinite)).sort((a, b) => a.t - b.t);
+}
+
+// Analys i webbläsaren. För lokala positioner skickas även notiser (ntfy) – molnpositionerna sköter molnet själv.
+async function analyseraLokalt(p, medNotiser) {
+  const ins = insInfo(p.instrument);
+  try {
+    const alla = await hamta5min(ins);
+    const forra = pos.lokalStatus[p.id] || pos.status[p.id];
+    const a = analyseraPosition(p, taBortPagaende(alla, 5), {
+      dec: ins.dec ?? 2, valuta: ins.valuta || '', prisNu: alla.at(-1).c, kostnadProc: ins.kostnadProc ?? 0.04, risk: forra?.risk,
+    });
+    if (medNotiser) {
+      const lista = positionsHandelser(pos.lokalStatus[p.id] || null, a, p, ins.namn, Date.now());
+      for (const h of lista) skickaPositionsnotis(h, ins);
+    } else {
+      a.minne = forra?.minne;
+    }
+    pos.lokalStatus[p.id] = { ...a, uppdaterad: new Date().toISOString() };
+    lager.spara('posstatus', JSON.stringify(pos.lokalStatus));
+  } catch (e) {
+    pos.lokalStatus[p.id] = { ...(pos.lokalStatus[p.id] || {}), fel: e.message, uppdaterad: new Date().toISOString() };
+  }
+  renderPositioner();
+}
+
+function skickaPositionsnotis(h, ins) {
+  const ruta = $('notisruta');
+  ruta.textContent = `${h.titel}\n${h.text}`;
+  ruta.style.display = 'block';
+  clearTimeout(visaNotis.timer);
+  visaNotis.timer = setTimeout(() => { ruta.style.display = 'none'; }, 15000);
+  const amne = lager.hamta('amne');
+  if (amne) {
+    fetch('https://ntfy.sh/', {
+      method: 'POST',
+      body: JSON.stringify({ topic: amne, title: h.titel, message: h.text, priority: h.prioritet || 3, click: `${location.href.split('#')[0]}#${ins.id}` }),
+    }).catch(() => {});
+  }
+}
+
+function styrLokalBevakning() {
+  clearInterval(pos.timer);
+  const bevakas = pos.lokal.filter((p) => insInfo(p.instrument).kalla === 'twelvedata');
+  if (!bevakas.length || !lager.hamta('nyckel')) return;
+  const runda = async () => { for (const p of pos.lokal) if (insInfo(p.instrument).kalla === 'twelvedata') await analyseraLokalt(p, true); };
+  runda();
+  pos.timer = setInterval(runda, 2 * 60000);
+}
+
+// --- Registrera köp ---
+const kop = { riktning: 1, redigerad: { stop: false, mal: false } };
+const tolkaTal = (v) => { const n = Number(String(v).replace(/\s/g, '').replace(',', '.')); return Number.isFinite(n) && String(v).trim() !== '' ? n : null; };
+
+function foreslaStopMal() {
+  const a = t.data[t.vald]?.timme;
+  const ins = valdInfo();
+  const pris = tolkaTal($('kopPris').value);
+  const niva = a?.nivaer?.[$('kopNiva').value];
+  if (!pris || !niva) return;
+  const avst = niva.nyttStopAvstand;
+  const dec = ins.dec ?? 2;
+  if (!kop.redigerad.stop) $('kopStop').value = (pris - kop.riktning * avst).toFixed(dec);
+  if (!kop.redigerad.mal) $('kopMal').value = (pris + kop.riktning * avst * NIVAER[niva.id].malR).toFixed(dec);
+  const hav = tolkaTal($('kopHav').value);
+  $('kopBarriar').placeholder = hav ? `ca ${(pris - (kop.riktning * pris) / hav).toFixed(dec)}` : 'från Avanza';
+}
+
+function oppnaKop(riktning) {
+  const ins = valdInfo();
+  const k = aktuell();
+  if (!ins.id || !k) { visaMeddelande('Välj ett instrument som har en analys först.', 'info'); return; }
+  kop.riktning = riktning;
+  kop.redigerad = { stop: false, mal: false };
+  const dec = ins.dec ?? 2;
+  $('kopRubrik').textContent = `Jag köpte ${riktning === 1 ? 'lång' : 'kort'}: ${ins.namn}`;
+  $('kopInfo').textContent = `Ange priset på ${ins.namn} (inte turbons pris). Stop och mål föreslås från risknivån och kan ändras.`;
+  $('kopPris').value = (k.senastePris ?? k.analys.pris).toFixed(dec);
+  $('kopHav').value = '';
+  $('kopBarriar').value = '';
+  $('kopBelopp').value = '';
+  $('kopVar').textContent = gh.aktiv()
+    ? 'Positionen sparas i ditt GitHub-repo och bevakas i molnet var 2–3:e minut, även när mobilen är låst. Du får notis när reglerna säger sälj.'
+    : ins.kalla === 'twelvedata' && lager.hamta('nyckel')
+      ? 'Utan GitHub-nyckel bevakas positionen bara medan dashboarden är öppen. Lägg in en GitHub-nyckel för bevakning i molnet.'
+      : 'Utan GitHub-nyckel kan positionen inte bevakas automatiskt. Lägg in en GitHub-nyckel under Inställningar.';
+  foreslaStopMal();
+  $('kopdialog').showModal();
+}
+
+async function sparaKop() {
+  const ins = valdInfo();
+  const p = {
+    id: `p${Date.now().toString(36)}`, instrument: ins.id, namn: ins.namn, riktning: kop.riktning, niva: $('kopNiva').value,
+    inPris: tolkaTal($('kopPris').value), inT: Date.now(), stop: tolkaTal($('kopStop').value), mal: tolkaTal($('kopMal').value),
+    oppnad: new Date().toISOString(),
+  };
+  const hav = tolkaTal($('kopHav').value), barriar = tolkaTal($('kopBarriar').value), belopp = tolkaTal($('kopBelopp').value);
+  if (hav) p.havstang = hav;
+  if (barriar) p.barriar = barriar;
+  if (!p.inPris || !p.stop || !p.mal) { visaMeddelande('Pris, stop och mål måste vara ifyllda.', 'fel'); return; }
+  if ((p.inPris - p.stop) * p.riktning <= 0 || (p.mal - p.inPris) * p.riktning <= 0) {
+    visaMeddelande(`För en ${p.riktning === 1 ? 'lång' : 'kort'} position ska stoppen ligga ${p.riktning === 1 ? 'under' : 'över'} priset och målet ${p.riktning === 1 ? 'över' : 'under'}.`, 'fel');
+    return;
+  }
+  if (belopp) lager.spara(`belopp.${p.id}`, String(belopp));
+  try {
+    if (gh.aktiv()) {
+      visaMeddelande('Sparar positionen i GitHub …', 'info');
+      let data = { positioner: [], historik: [] };
+      try { data = await gh.lasFil('docs/positioner.json'); } catch (e) { if (e.status !== 404) throw e; }
+      data.positioner = [...(data.positioner || []), p];
+      await gh.skrivFil('docs/positioner.json', data, `Ny position: ${ins.namn} ${p.riktning === 1 ? 'lång' : 'kort'}`);
+      await gh.starta('positionsbevakning.yml');
+      visaMeddelande(`Klart. Bevakningen av ${ins.namn} startar i molnet inom någon minut, och du får notisen "Bevakar ${ins.namn} (${p.riktning === 1 ? 'lång' : 'kort'})".`, 'info');
+    } else {
+      pos.lokal = [...lokalaPositioner(), p];
+      sparaLokala(pos.lokal);
+      visaMeddelande(`${ins.namn} är registrerad i den här webbläsaren.`, 'info');
+    }
+  } catch (e) {
+    visaMeddelande(`Kunde inte spara positionen: ${e.message}`, 'fel');
+    return;
+  }
+  await laddaPositioner();
+  $('positionskort').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// --- Jag har sålt ---
+let saljes = null;
+function oppnaSalj(p, plats, prisNu) {
+  saljes = { p, plats };
+  const ins = insInfo(p.instrument);
+  $('saljRubrik').textContent = `Jag har sålt: ${ins.namn} ${p.riktning === -1 ? 'kort' : 'lång'}`;
+  $('saljPris').value = prisNu != null ? prisNu.toFixed(ins.dec ?? 2) : '';
+  $('saljdialog').showModal();
+}
+
+async function sparaSalj() {
+  const { p, plats } = saljes;
+  const utPris = tolkaTal($('saljPris').value);
+  const avslutad = { ...p, utPris, utT: Date.now(), resultatProc: utPris ? (100 * (utPris - p.inPris) * p.riktning) / p.inPris : null };
+  try {
+    if (plats === 'moln') {
+      if (!gh.aktiv()) throw new Error('Lägg in GitHub-nyckeln under Inställningar för att ändra positioner i molnet.');
+      const data = await gh.lasFil('docs/positioner.json');
+      data.positioner = (data.positioner || []).filter((x) => x.id !== p.id);
+      data.historik = [avslutad, ...(data.historik || [])].slice(0, 50);
+      await gh.skrivFil('docs/positioner.json', data, `Såld: ${p.namn || p.instrument}`);
+    } else {
+      sparaLokala(lokalaPositioner().filter((x) => x.id !== p.id));
+      delete pos.lokalStatus[p.id];
+      lager.spara('posstatus', JSON.stringify(pos.lokalStatus));
+    }
+    visaMeddelande(`${insInfo(p.instrument).namn} är avslutad${avslutad.resultatProc != null ? ` (${signProc(avslutad.resultatProc, 2)} på underliggande)` : ''}. Bevakningen stoppas.`, 'info');
+  } catch (e) {
+    visaMeddelande(`Kunde inte spara: ${e.message}`, 'fel');
+  }
+  await laddaPositioner();
+}
+
+$('kopdialog').addEventListener('close', () => { if ($('kopdialog').returnValue === 'spara') sparaKop(); });
+$('saljdialog').addEventListener('close', () => { if ($('saljdialog').returnValue === 'spara') sparaSalj(); });
+$('kopPris').addEventListener('input', foreslaStopMal);
+$('kopNiva').addEventListener('change', () => { kop.redigerad = { stop: false, mal: false }; foreslaStopMal(); });
+$('kopHav').addEventListener('input', foreslaStopMal);
+$('kopStop').addEventListener('input', () => { kop.redigerad.stop = true; });
+$('kopMal').addEventListener('input', () => { kop.redigerad.mal = true; });
+$('knappKopLang').addEventListener('click', () => oppnaKop(1));
+$('knappKopKort').addEventListener('click', () => oppnaKop(-1));
+$('knappNulage').addEventListener('click', nulagesanalys);
 
 // ---------- Inställningar ----------
 function oppnaInstallningar() {
   $('falNyckel').value = lager.hamta('nyckel');
   $('falAmne').value = lager.hamta('amne');
   $('falKapital').value = lager.hamta('kapital');
+  $('falGithub').value = lager.hamta('ghnyckel');
+  $('falRepo').value = lager.hamta('repo');
+  $('falRepo').placeholder = gh.repo() || 'användarnamn/guldbot';
+  $('falRepoInfo').textContent = gh.repo() && !lager.hamta('repo') ? `Hittades automatiskt: ${gh.repo()}` : '';
   $('installningar').showModal();
 }
 $('installningar').addEventListener('close', () => {
@@ -800,8 +1660,14 @@ $('installningar').addEventListener('close', () => {
   lager.spara('nyckel', $('falNyckel').value.trim());
   lager.spara('amne', $('falAmne').value.trim());
   lager.spara('kapital', $('falKapital').value.trim());
+  const ghFore = gh.nyckel() + gh.repo();
+  lager.spara('ghnyckel', $('falGithub').value.trim());
+  lager.spara('repo', $('falRepo').value.trim());
+  gh._gren = null;
   visaMeddelande('');
-  rendera();
+  renderDetalj();
+  if (gh.nyckel() + gh.repo() !== ghFore) laddaAllt(true);
+  else styrLokalBevakning();
 });
 
 // ---------- Händelser ----------
@@ -817,14 +1683,23 @@ document.querySelectorAll('.flikar button').forEach((b) => {
   b.addEventListener('click', () => {
     t.niva = b.dataset.niva; lager.spara('niva', t.niva);
     document.querySelectorAll('.flikar button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    rendera();
+    renderDetalj();
   });
 });
+document.querySelectorAll('#filter button').forEach((b) => {
+  b.addEventListener('click', () => {
+    t.filter = b.dataset.filter;
+    document.querySelectorAll('#filter button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    renderOversikt();
+  });
+});
+window.addEventListener('hashchange', () => valjInstrument(decodeURIComponent(location.hash.slice(1)), true));
 let storleksTimer;
-window.addEventListener('resize', () => { clearTimeout(storleksTimer); storleksTimer = setTimeout(rendera, 150); });
+window.addEventListener('resize', () => { clearTimeout(storleksTimer); storleksTimer = setTimeout(renderDetalj, 150); });
 
-laddaMoln();
-setInterval(() => laddaMoln(true), 5 * 60000);
+laddaAllt();
+setInterval(() => { if (t.lage === 'moln') laddaAllt(true); }, 5 * 60000);
+setInterval(() => { if (pos.moln.length) laddaPositioner(); }, 2 * 60000);
 </script>
 </body>
 </html>

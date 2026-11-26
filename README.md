@@ -5,17 +5,19 @@ Guldbot bevakar 23 marknader dygnet runt: guld, silver, olja, valutor, index, ak
 - **Kortsiktiga lägen (varje timme):** Samma regler som för guldet, på timstaplar, för alla instrument. Tre risknivåer: låg, medel och hög.
 - **Längre lägen (varje morgon):** Ett eget regelset på dagsstaplar som letar köplägen med horisont på veckor till månader.
 - **Live (när du tradar):** Välj ett instrument i dashboarden och tryck på *Live*. Då analyseras det varje minut på 5-minuters-, 15-minuters- eller timstaplar.
+- **Nulägesanalys:** En knapp som analyserar alla instrument direkt och sammanfattar läget.
+- **Mina positioner:** Tryck *Jag köpte lång* eller *Jag köpte kort* när du har köpt. Boten bevakar då positionen var 2–3:e minut och skickar en notis när reglerna säger sälj, och varför.
 
 > Guldbot visar vad fasta tekniska regler säger. Det är inte investeringsrådgivning, och historiska resultat är ingen garanti för framtiden.
 
 ---
 
-## Uppgradera från guldversionen
+## Uppgradera från en tidigare version
 
-Har du redan Guldbot igång för guld? Då behåller du repot, hemligheterna och ntfy-ämnet. Gör så här:
+Har du redan Guldbot igång? Då behåller du repot, hemligheterna och ntfy-ämnet. Gör så här:
 
 1. I repot på GitHub: **Add file → Upload files**. Dra in alla filer från den nya mappen och klicka **Commit changes**. Befintliga filer med samma namn ersätts.
-   Kontrollera efteråt att `.github/workflows/guldanalys.yml` och den nya filen `docs/bevakning.json` finns i repot.
+   Kontrollera efteråt att `.github/workflows/guldanalys.yml`, `.github/workflows/positionsbevakning.yml`, `docs/bevakning.json` och `docs/positioner.json` finns i repot.
 2. Ta bort `docs/data.json` om du vill. Den används inte längre, eftersom analyserna nu sparas i mappen `docs/data/`.
 3. **Actions → Guldanalys → Run workflow**, välj **båda** och klicka på den gröna knappen.
 
@@ -56,6 +58,17 @@ Adressen blir `https://DITT-ANVÄNDARNAMN.github.io/guldbot/`.
 ### 7. Lägg dashboarden på hemskärmen
 Öppna adressen i mobilen → **Dela → Lägg till på hemskärmen**. Under **Inställningar** i dashboarden kan du lägga in Twelve Data-nyckeln (för live-läget), ntfy-ämnet (för notiser i live-läget) och ditt kapital, som används för att räkna ut ungefärlig insats per affär.
 
+### 8. Skapa en GitHub-nyckel för knapparna
+Knapparna **Nulägesanalys** och **Jag köpte lång/kort** startar körningar i molnet och sparar dina positioner i repot. Dashboarden är en vanlig webbsida, så den behöver en egen nyckel för att få göra det.
+
+1. På GitHub: klicka på din profilbild → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Namn: `guldbot-dashboard`. Välj en giltighetstid, till exempel 90 dagar.
+3. **Repository access:** *Only select repositories* → välj `guldbot`.
+4. **Permissions** (under Repository permissions): **Actions** → *Read and write*, **Contents** → *Read and write*.
+5. Klicka **Generate token**, kopiera nyckeln och klistra in den under **Inställningar → GitHub-nyckel** i dashboarden.
+
+Nyckeln sparas bara i den webbläsaren och gäller bara guldbot-repot. Du kan ta bort den på GitHub när som helst. Gör om stegen på varje enhet där du vill använda knapparna, och skapa en ny nyckel när den gamla går ut.
+
 ---
 
 ## Dashboarden
@@ -66,6 +79,52 @@ Adressen blir `https://DITT-ANVÄNDARNAMN.github.io/guldbot/`.
 - Tryck på ett instrument för detaljer: risknivåkort, längre läge med dagsgraf, timgraf, analys, senaste signaler och historik.
 - Notiser från boten länkar direkt till rätt instrument.
 - **Live** finns för instrument som hämtas från Twelve Data: guld, silver, valutorna, USA-aktierna och krypto.
+
+---
+
+## Nulägesanalys
+
+Knappen **Nulägesanalys** överst i dashboarden analyserar alla instrument på en gång och sammanfattar:
+- aktiva kortsiktiga lägen, de senaste först
+- möjliga lägen på väg
+- längre köplägen
+- de instrument som har rört sig mest det senaste dygnet
+
+**Med GitHub-nyckel** körs analysen i molnet för alla 23 instrument. Det tar 2–3 minuter.
+**Utan GitHub-nyckel** men med Twelve Data-nyckel analyseras de 12 instrumenten från Twelve Data direkt i webbläsaren (ca 1,5 minuter). Instrumenten från Yahoo visar då molnets senaste analys.
+
+Varje nulägesanalys använder 12 av Twelve Datas 800 anrop per dygn.
+
+---
+
+## Mina positioner
+
+När du har köpt en turbo eller ett certifikat trycker du på **▲ Jag köpte lång** eller **▼ Jag köpte kort** på instrumentet.
+- **Pris:** ange priset på det **underliggande** (t.ex. guldpriset), inte turbons pris. Dashboarden föreslår det senaste priset.
+- **Stop och mål** föreslås utifrån risknivån (samma som för signalerna) och kan ändras.
+- **Hävstång och barriär** är valfria. Med hävstång visas ungefärligt resultat på turbon. Med barriär varnar boten när priset närmar sig knock-out-nivån.
+- **Belopp** är valfritt och används bara för att visa ungefärligt resultat i kronor. Det sparas bara i webbläsaren.
+
+**Med GitHub-nyckel** sparas positionen i `docs/positioner.json`, och arbetsflödet *Positionsbevakning* startar inom någon minut. Det analyserar positionen på 5-minutersstaplar var 2–3:e minut, även när mobilen är låst. Varje körning håller på i upp till ca 6 timmar och startas om varje timme så länge du har öppna positioner. När marknaden är stängd görs en kontroll var 30:e minut.
+**Utan GitHub-nyckel** bevakas positionen bara medan dashboarden är öppen, och bara för instrument från Twelve Data.
+
+När du har sålt trycker du på **Jag har sålt** och anger priset. Då stoppas bevakningen och affären sparas i historiken.
+
+### Säljreglerna
+| Status | När |
+|---|---|
+| ⛔ **Säljsignal** | stoppen nås · målet nås · timtrenden vänder mot dig (EMA 9 korsar EMA 21 och priset hamnar på fel sida) · priset är närmare än 0,5 ATR från turbons barriär |
+| ⚠ **Varning** | momentum vänder på 5-minutersstaplar · överköpt (RSI över 75) för en lång position eller översålt (under 25) för en kort · priset är nära stoppen eller barriären |
+| ✓ **Behåll** | inget av ovanstående |
+
+Stoppen följer med när affären går bra. Vid +1R flyttas den till köppriset, så att affären inte kan bli en förlust. Från +1,5R följer den efter priset (bästa pris sedan köpet minus 1 ATR). Du får en notis varje gång stoppen ska flyttas.
+
+**Notiser för positioner:** *Bevakar …* när bevakningen startar, *Säljsignal* (högsta prioritet) med skälen, *Påminnelse* var 30:e minut (högst fyra gånger) tills du trycker på *Jag har sålt*, *Varning* (högst en gång per halvtimme och skäl) och *Flytta stoppen*.
+
+**Bra att veta:**
+- Repot är publikt, så positionerna i `docs/positioner.json` (instrument, riktning, pris, stop och mål) syns för den som hittar repot. Belopp sparas aldrig där.
+- GitHub Actions är gratis för publika repon, så de långa bevakningskörningarna kostar inget.
+- Bevakningen använder högst ungefär 20 Twelve Data-anrop per timme medan marknaden är öppen. Instrument från Yahoo kostar inga anrop.
 
 ---
 
@@ -122,7 +181,12 @@ Stop-lossen sätts 3 ATR under köpet och flyttas upp när priset stiger (högst
 
 Twelve Datas gratisnivå täcker USA-aktier, valutor (där guld och silver räknas in) och krypto. Index, svenska aktier och olja hämtas därför från Yahoo Finance. Yahoo är en inofficiell källa som kan sluta fungera utan förvarning, och då får du en notis. Instrument från Twelve Data har Yahoo som reserv.
 
-Gratisnivån ger 800 anrop per dygn och 8 per minut. Boten hämtar bara instrument vars marknad är öppen (aktier och index under börstid, valutor och råvaror på vardagar, krypto dygnet runt). Molnet använder därför ungefär 210 anrop per dygn, och live-läget ett per minut. Det räcker till ungefär 9 timmar live per dag.
+Gratisnivån ger 800 anrop per dygn och 8 per minut. Boten hämtar bara instrument vars marknad är öppen (aktier och index under börstid, valutor och råvaror på vardagar, krypto dygnet runt), så timanalysen använder ungefär 210 anrop per dygn. Det som finns kvar delas av:
+- live-läget: 1 anrop per minut
+- positionsbevakningen: högst ca 20 per timme medan marknaden är öppen
+- nulägesanalys: 12 per tryck
+
+Utan positioner räcker det till ungefär 9 timmar live per dag. Om dygnets anrop tar slut använder boten Yahoo som reserv för de instrument som har en reservkälla.
 
 ---
 
@@ -163,6 +227,10 @@ Svenska aktier har `.ST` på slutet hos Yahoo. Fler instrument från Twelve Data
 | `docs/index.html` | Dashboarden, med översikt och live-läge |
 | `docs/bevakning.json` | Bevakningslistan |
 | `docs/data/` | Analyserna. Skapas av boten, så rör dem inte |
-| `scripts/run.mjs` | Molnskriptet som GitHub kör |
-| `.github/workflows/guldanalys.yml` | Schemat: varje timme, varje morgon, plus en knapp för att köra direkt |
+| `docs/positioner.json` | Dina registrerade positioner. Skrivs av dashboarden |
+| `scripts/run.mjs` | Molnskriptet för tim- och dagsanalysen |
+| `scripts/positioner.mjs` | Molnskriptet som bevakar dina positioner |
+| `scripts/gemensam.mjs` | Delar som båda molnskripten använder: prisdata och notiser |
+| `.github/workflows/guldanalys.yml` | Schemat för analysen: varje timme, varje morgon, plus en knapp för att köra direkt |
+| `.github/workflows/positionsbevakning.yml` | Positionsbevakningen: startas av dashboarden och varje timme |
 | `scripts/test.mjs` | Självtest på syntetiska priser (`npm test`, kräver Node 20 eller senare) |

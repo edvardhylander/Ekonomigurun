@@ -1,0 +1,31 @@
+{
+  "om": "Bevakningslistan. Lägg till, ta bort eller ändra instrument här. Fälten förklaras i README.md under 'Bevakningslistan'.",
+  "instrument": [
+    { "id": "guld", "namn": "Guld", "grupp": "Råvaror och valutor", "kalla": "twelvedata", "symbol": "XAU/USD", "reserv": "GC=F", "handelstid": "fx", "valuta": "USD", "dec": 2, "kostnadProc": 0.04 },
+    { "id": "silver", "namn": "Silver", "grupp": "Råvaror och valutor", "kalla": "twelvedata", "symbol": "XAG/USD", "reserv": "SI=F", "handelstid": "fx", "valuta": "USD", "dec": 3, "kostnadProc": 0.06 },
+    { "id": "brent", "namn": "Olja (Brent)", "grupp": "Råvaror och valutor", "kalla": "yahoo", "symbol": "BZ=F", "handelstid": "fx", "valuta": "USD", "dec": 2, "kostnadProc": 0.06 },
+    { "id": "eurusd", "namn": "EUR/USD", "grupp": "Råvaror och valutor", "kalla": "twelvedata", "symbol": "EUR/USD", "reserv": "EURUSD=X", "handelstid": "fx", "valuta": "USD", "dec": 5, "kostnadProc": 0.02 },
+    { "id": "usdsek", "namn": "USD/SEK", "grupp": "Råvaror och valutor", "kalla": "twelvedata", "symbol": "USD/SEK", "reserv": "SEK=X", "handelstid": "fx", "valuta": "SEK", "dec": 4, "kostnadProc": 0.03 },
+
+    { "id": "sp500", "namn": "S&P 500", "grupp": "Index", "kalla": "yahoo", "symbol": "^GSPC", "handelstid": "us", "valuta": "poäng", "dec": 1, "kostnadProc": 0.03 },
+    { "id": "nasdaq100", "namn": "Nasdaq 100", "grupp": "Index", "kalla": "yahoo", "symbol": "^NDX", "handelstid": "us", "valuta": "poäng", "dec": 1, "kostnadProc": 0.03 },
+    { "id": "dax", "namn": "DAX", "grupp": "Index", "kalla": "yahoo", "symbol": "^GDAXI", "handelstid": "eu", "valuta": "poäng", "dec": 1, "kostnadProc": 0.03 },
+    { "id": "omxs30", "namn": "OMXS30", "grupp": "Index", "kalla": "yahoo", "symbol": "^OMX", "handelstid": "eu", "valuta": "poäng", "dec": 2, "kostnadProc": 0.03 },
+
+    { "id": "nvidia", "namn": "Nvidia", "grupp": "Aktier", "kalla": "twelvedata", "symbol": "NVDA", "reserv": "NVDA", "handelstid": "us", "valuta": "USD", "dec": 2, "kostnadProc": 0.05 },
+    { "id": "tesla", "namn": "Tesla", "grupp": "Aktier", "kalla": "twelvedata", "symbol": "TSLA", "reserv": "TSLA", "handelstid": "us", "valuta": "USD", "dec": 2, "kostnadProc": 0.05 },
+    { "id": "apple", "namn": "Apple", "grupp": "Aktier", "kalla": "twelvedata", "symbol": "AAPL", "reserv": "AAPL", "handelstid": "us", "valuta": "USD", "dec": 2, "kostnadProc": 0.05 },
+    { "id": "microsoft", "namn": "Microsoft", "grupp": "Aktier", "kalla": "twelvedata", "symbol": "MSFT", "reserv": "MSFT", "handelstid": "us", "valuta": "USD", "dec": 2, "kostnadProc": 0.05 },
+    { "id": "amazon", "namn": "Amazon", "grupp": "Aktier", "kalla": "twelvedata", "symbol": "AMZN", "reserv": "AMZN", "handelstid": "us", "valuta": "USD", "dec": 2, "kostnadProc": 0.05 },
+    { "id": "meta", "namn": "Meta", "grupp": "Aktier", "kalla": "twelvedata", "symbol": "META", "reserv": "META", "handelstid": "us", "valuta": "USD", "dec": 2, "kostnadProc": 0.05 },
+    { "id": "volvo", "namn": "Volvo B", "grupp": "Aktier", "kalla": "yahoo", "symbol": "VOLV-B.ST", "handelstid": "eu", "valuta": "SEK", "dec": 2, "kostnadProc": 0.08 },
+    { "id": "ericsson", "namn": "Ericsson B", "grupp": "Aktier", "kalla": "yahoo", "symbol": "ERIC-B.ST", "handelstid": "eu", "valuta": "SEK", "dec": 2, "kostnadProc": 0.08 },
+    { "id": "atlascopco", "namn": "Atlas Copco A", "grupp": "Aktier", "kalla": "yahoo", "symbol": "ATCO-A.ST", "handelstid": "eu", "valuta": "SEK", "dec": 2, "kostnadProc": 0.08 },
+    { "id": "investor", "namn": "Investor B", "grupp": "Aktier", "kalla": "yahoo", "symbol": "INVE-B.ST", "handelstid": "eu", "valuta": "SEK", "dec": 2, "kostnadProc": 0.08 },
+    { "id": "saab", "namn": "Saab B", "grupp": "Aktier", "kalla": "yahoo", "symbol": "SAAB-B.ST", "handelstid": "eu", "valuta": "SEK", "dec": 2, "kostnadProc": 0.08 },
+    { "id": "hm", "namn": "H&M B", "grupp": "Aktier", "kalla": "yahoo", "symbol": "HM-B.ST", "handelstid": "eu", "valuta": "SEK", "dec": 2, "kostnadProc": 0.08 },
+
+    { "id": "bitcoin", "namn": "Bitcoin", "grupp": "Krypto", "kalla": "twelvedata", "symbol": "BTC/USD", "reserv": "BTC-USD", "handelstid": "dygnet", "valuta": "USD", "dec": 0, "kostnadProc": 0.15 },
+    { "id": "ethereum", "namn": "Ethereum", "grupp": "Krypto", "kalla": "twelvedata", "symbol": "ETH/USD", "reserv": "ETH-USD", "handelstid": "dygnet", "valuta": "USD", "dec": 2, "kostnadProc": 0.15 }
+  ]
+}
