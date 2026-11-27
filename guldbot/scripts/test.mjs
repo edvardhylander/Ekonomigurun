@@ -7,7 +7,7 @@ import {
   aggregera, analyseraPosition, positionsHandelser,
 } from '../docs/engine.js';
 import * as E from '../docs/ekonomi-berakning.js';
-import { kryptera, dekryptera, normalisera, laggTillAffarIData, laggTillKopIData, tomEkonomi } from '../docs/ekonomi-lagring.js';
+import { kryptera, dekryptera, normalisera, laggTillAffarIData, tomEkonomi } from '../docs/ekonomi-lagring.js';
 
 const fil = new URL('../test-data/syntetiska-staplar.json', import.meta.url);
 if (!existsSync(fil)) execFileSync(process.execPath, [new URL('./gen-testdata.mjs', import.meta.url).pathname]);
@@ -123,90 +123,38 @@ kontroll(nara(E.slutvarde(10000, 5000, kravA, 120), 1e6, 5), 'krav på avkastnin
 kontroll(E.manaderTill(100000, 10000, 2000, 7) === 40, 'antal månader till 100 000');
 kontroll(E.kravAvkastning(1e9, 0, 100, 12) === null, 'orimligt mål ger inget avkastningskrav');
 
-// 11. Ekonomi: migrering från version 1, konton, trading, budget, mål
+// 11. Ekonomi: konton, trading, budget, utgifter, mål
 const ek = normalisera({
   konton: [
     { id: 'k1', namn: 'ISK', typ: 'langsiktigt', manadssparande: 3000, avkastning: 7, varden: [{ datum: '2026-01-01', varde: 50000 }, { datum: '2026-10-31', varde: 81000 }], transaktioner: [{ id: 't0', datum: '2026-05-25', belopp: 3000 }, { id: 't1', datum: '2026-11-25', belopp: 3000 }] },
     { id: 'k2', namn: 'Trading', typ: 'trading', varden: [{ datum: '2026-09-01', varde: 20000 }], transaktioner: [] },
-    { id: 'k3', namn: 'Buffert', typ: 'buffert', varden: [{ datum: '2026-09-01', varde: 10000 }], transaktioner: [] },
   ],
-  affarer: [{ id: 'a1', datum: '2026-10-02', instrument: 'Guld', insats: 2000, resultat: 600 }, { id: 'a2', datum: '2026-11-03', instrument: 'Guld', insats: 2000, resultat: -300 }, { id: 'a3', datum: '2026-11-20', instrument: 'Silver', insats: 1500, resultat: 450, avgift: 20, riktning: -1 },
-    { id: 'a4', kopDatum: '2026-11-22', instrument: 'DAX', insats: 1000, oppen: true, resultat: null, datum: null }],
-  budget: { inkomster: [{ id: 'i', namn: 'Lön', belopp: 16000 }], utgifter: [{ id: 'u', namn: 'Hyra', belopp: 9000, kategori: 'Boende' }], utfall: {} },
+  affarer: [{ id: 'a1', datum: '2026-10-02', instrument: 'Guld', insats: 2000, resultat: 600 }, { id: 'a2', datum: '2026-11-03', instrument: 'Guld', insats: 2000, resultat: -300 }, { id: 'a3', datum: '2026-11-20', instrument: 'Silver', insats: 1500, resultat: 450, avgift: 20 }],
+  budget: { inkomster: [{ id: 'i', belopp: 16000 }], utgifter: [{ id: 'u', belopp: 9000 }], utfall: { '2026-11': { u: 9500 } } },
   utgifter: [{ id: 'f', namn: 'Försäkring', belopp: 6000, datum: '2026-03-15', aterkommande: 'ar', sparat: 1000 }],
 });
-kontroll(ek.version === 2 && ek.poster.length === 3 && !ek.budget && ek.poster.find((p) => p.id === 'f').sparaIhop, 'version 1 flyttas över till planerade poster');
 kontroll(E.kontoVarde(ek.konton[0], ek, '2026-11-26') === 84000, 'kontovärde = senaste värde + insättningar efter');
 kontroll(E.kontoUtveckling(ek.konton[0], ek, '2026-11-26').avkastning === 28000, 'avkastning räknas utan insättningar');
-kontroll(E.kontoVarde(ek.konton[1], ek, '2026-11-26') === 20730, 'tradingkontot får realiserade resultat (öppna köp räknas inte)');
+kontroll(E.kontoVarde(ek.konton[1], ek, '2026-11-26') === 20730, 'tradingkontot får realiserade resultat efter avgifter');
 const ts = E.tradingStatistik(ek.affarer);
-kontroll(ts.summa === 730 && ts.antal === 3 && nara(ts.traffProc, 66.67, 0.01) && ts.maxNedgang === 300 && ts.kort.antal === 1, 'tradingstatistik (summa, träff, nedgång, kort/lång)');
-kontroll(E.oppnaAffarer(ek.affarer).length === 1, 'öppna köp hålls isär');
-const pot = E.sparpotter(ek, '2026-11-26')[0];
-kontroll(pot.nastaDatum === '2027-03-15' && pot.perManad === 1250, 'utgift att spara ihop till flyttas till nästa år och delas per månad');
-const bm = E.budgetForManad(ek, '2026-11', '2026-11-26');
-kontroll(bm.inkomster === 16000 && bm.utgifter === 9000 && bm.sparande === 3000 && nara(bm.kvar, 16000 - 9000 - 3000 - 1250), 'budget för en månad');
-
-// Flexibla poster: bidrag en gång i januari och hyra från januari
-ek.poster.push({ id: 'b1', typ: 'inkomst', namn: 'Utbytesbidrag', belopp: 20000, kategori: 'Bidrag och stipendier', frekvens: 'en-gang', start: '2027-01-15' });
-ek.poster.push({ id: 'h1', typ: 'utgift', namn: 'Hyra utbyte', belopp: 10000, kategori: 'Boende', frekvens: 'manad', start: '2027-01-01', slut: '2027-06-30' });
-ek.poster.push({ id: 'q1', typ: 'utgift', namn: 'Kvartalsavgift', belopp: 300, kategori: 'Övrigt', frekvens: 'kvartal', start: '2026-12-01' });
-const dec = E.budgetForManad(ek, '2026-12', '2026-11-26'), jan = E.budgetForManad(ek, '2027-01', '2026-11-26'), feb = E.budgetForManad(ek, '2027-02', '2026-11-26');
-const jul = E.budgetForManad(ek, '2027-07', '2026-11-26'), mar = E.budgetForManad(ek, '2027-03', '2026-11-26');
-kontroll(dec.utgifter === 9300 && jan.inkomster === 36000 && jan.utgifter === 19000 && feb.inkomster === 16000 && feb.utgifter === 19000, 'engångsinkomst i januari och hyra från januari');
-kontroll(jul.utgifter === 9000 && mar.utgifter === 19300, 'slutdatum och kvartalsposter');
-const pr = E.prognos(ek, 12, '2026-11-26');
-kontroll(pr.length === 12 && nara(pr[2].kumulativt, pr[0].kvar + pr[1].kvar + pr[2].kvar), 'prognos med kumulativt överskott');
-
-// Registrerade transaktioner
-ek.transaktioner = [
-  { id: 'x1', datum: '2026-11-03', belopp: -5200, text: 'Hyra', kategori: 'Boende' },
-  { id: 'x2', datum: '2026-11-05', belopp: -432.5, text: 'ICA Maxi', kategori: E.gissaKategori('ICA Maxi', -432.5) },
-  { id: 'x3', datum: '2026-11-07', belopp: -129, text: 'Spotify AB', kategori: E.gissaKategori('Spotify AB', -129) },
-  { id: 'x4', datum: '2026-10-07', belopp: -129, text: 'Spotify AB', kategori: 'Abonnemang' },
-  { id: 'x5', datum: '2026-11-25', belopp: 12000, text: 'CSN', kategori: E.gissaKategori('CSN utbetalning', 12000) },
-];
-kontroll(ek.transaktioner[1].kategori === 'Mat och dagligvaror' && ek.transaktioner[2].kategori === 'Abonnemang' && ek.transaktioner[4].kategori === 'Studiemedel', 'kategorier gissas från texten');
-kontroll(E.gissaKategori('ICA Maxi', -50, [{ monster: 'ica maxi', kategori: 'Övrigt' }]) === 'Övrigt', 'egna regler går före');
-const fm = E.faktisktForManad(ek, '2026-11');
-kontroll(fm.utgifter === 5761.5 && fm.inkomster === 12000 && fm.perKategori.Boende === 5200, 'utgifter och inkomster per månad och kategori');
-const us = E.utgiftsstatistik(ek, '2026-11', 3, '2026-11-26');
-kontroll(us.kategorier[0].kategori === 'Boende' && us.snittManad === 129 && nara(us.perDag, 5761.5 / 26, 0.01), 'utgiftsstatistik');
-const ur = E.manadsutrymme(ek, '2026-11-26');
-kontroll(ur.lage === 'faktiskt' && nara(ur.kvar, 16000 - 3000 - 1250 - 5761.5) && ur.dagarKvar === 5, 'utrymme att spendera resten av månaden');
-
-// Import av kontoutdrag
-const csv = 'Transaktionsrapport\nBokföringsdag;Transaktionsdag;Text;Belopp;Saldo\n2026-11-02;2026-11-01;ICA NARA;-245,50;10 000,00\n2026-11-03;2026-11-03;SPOTIFY;-129,00;9 871,00\n2026-11-25;2026-11-25;CSN;12 000,00;21 871,00\n';
-const tolkad = E.tolkaCsv(csv);
-const kol = E.gissaKolumner(tolkad.rubrik, tolkad.rader);
-kontroll(tolkad.separator === ';' && tolkad.rubrik?.[2] === 'Text' && kol.belopp === 3 && kol.text === 2 && kol.datum <= 1, 'kontoutdrag: separator, rubrik och kolumner hittas');
-const imp = E.importeraRader(tolkad.rader, kol, [], [{ datum: '2026-11-03', belopp: -129, text: 'SPOTIFY' }]);
-kontroll(imp.nya.length === 2 && imp.dubbletter === 1 && imp.nya[0].belopp === -245.5 && imp.nya[1].kategori === 'Studiemedel', 'import hoppar över dubbletter och kategoriserar');
-kontroll(E.tolkaBelopp('−1 234,50') === -1234.5 && E.tolkaBelopp('1.234,50') === 1234.5 && E.tolkaDatum('24.11.2026') === '2026-11-24', 'belopp och datum i olika format');
-
-// Mål, fördelning, sparplan och tips
+kontroll(ts.summa === 730 && ts.antal === 3 && nara(ts.traffProc, 66.67, 0.01) && ts.maxNedgang === 300, 'tradingstatistik (summa, träff, största nedgång)');
+const up = E.utgiftsplan(ek.utgifter, '2026-11-26')[0];
+kontroll(up.nastaDatum === '2027-03-15' && up.perManad === 1250, 'återkommande utgift flyttas till nästa år och delas per månad');
+const bs = E.budgetSammanfattning(ek, '2026-11', '2026-11-26');
+kontroll(bs.utgifterUtfall === 9500 && bs.sparande === 3000 && nara(bs.kvar, 16000 - 9500 - 3000 - 1250), 'budget: utfall, sparande och avsättningar');
 const mp = E.malPrognos({ belopp: 300000, datum: '2029-06-01', kontoIds: ['k1'] }, ek, '2026-11-26');
 kontroll(mp.nuvarande === 84000 && !mp.iFas && nara(E.slutvarde(84000, mp.kravSpar, 7, mp.manader), 300000), 'målprognos med kopplat konto');
-const fo = E.fordelning(ek, '2026-11-26');
-kontroll(fo.per.buffert === 10000 && nara(fo.hogriskAndel, (100 * 20730) / (84000 + 20730), 0.01), 'fördelning och högriskandel');
-const sp = E.sparplan(ek, { bufferManader: 3, hogriskMax: 10 }, '2026-11-26');
-kontroll(nara(sp.tillBuffert + sp.tillHogrisk + sp.tillLangsiktigt, sp.total) && sp.tillBuffert > 0, 'sparplanen fördelar hela sparandet');
-const tp = E.tips(ek, {}, '2026-11-26');
-kontroll(tp.some((x) => x.id === 'hogrisk' && x.niva === 'varning') && tp.some((x) => x.id === 'buffert') && tp[0].niva === 'varning', 'tips sorteras med varningar först');
-kontroll(E.formogenhetsserie(ek, '2026-11-26').at(-1).varde === 114730, 'förmögenhetsserien slutar på dagens värde');
+kontroll(E.formogenhetsserie(ek, '2026-11-26').at(-1).varde === 104730, 'förmögenhetsserien slutar på dagens värde');
 
 // 12. Ekonomi: kryptering
 const kuvert = await kryptera(ek, 'en lång lösenfras');
 kontroll(!JSON.stringify(kuvert).includes('ISK') && kuvert.format === 'guldbot-ekonomi', 'krypterad fil innehåller inga läsbara uppgifter');
-kontroll((await dekryptera(kuvert, 'en lång lösenfras')).konton.length === 3, 'rätt lösenfras dekrypterar');
+kontroll((await dekryptera(kuvert, 'en lång lösenfras')).konton.length === 2, 'rätt lösenfras dekrypterar');
 let felLosen = false;
 try { await dekryptera(kuvert, 'fel fras'); } catch { felLosen = true; }
 kontroll(felLosen, 'fel lösenfras avvisas');
 const tomt = tomEkonomi();
 kontroll(laggTillAffarIData(tomt, { posId: 'p1', resultat: 5 }) && !laggTillAffarIData(tomt, { posId: 'p1', resultat: 5 }), 'samma affär från Guldbot läggs inte in två gånger');
-laggTillKopIData(tomt, { posId: 'p2', kopDatum: '2026-11-20', insats: 2000, instrument: 'Guld' });
-laggTillAffarIData(tomt, { posId: 'p2', datum: '2026-11-26', resultat: 450 });
-kontroll(tomt.affarer.length === 2 && tomt.affarer[1].oppen === false && tomt.affarer[1].insats === 2000 && tomt.affarer[1].kopDatum === '2026-11-20', 'ett köp från Guldbot stängs när du säljer');
 
 console.log(fel ? `\n${fel} fel` : '\nAlla tester gick igenom');
 process.exit(fel ? 1 : 0);

@@ -3,334 +3,1196 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f2f4f0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d1411" media="(prefers-color-scheme: dark)">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Ekonomi">
-<title>Ekonomi · Guldbot</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='26' height='12' rx='3' fill='%23c48f12'/%3E%3Crect x='8' y='6' width='16' height='8' rx='2' fill='%231a6b4c'/%3E%3C/svg%3E">
-<link rel="preload" href="fonts/schibsted-grotesk-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/schibsted-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<title>Guldbot · Ekonomi</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='26' height='12' rx='3' fill='%23c9971c'/%3E%3Crect x='8' y='6' width='16' height='8' rx='2' fill='%23e3b341'/%3E%3C/svg%3E">
 <style>
-  /*
-    Idé: en personlig kassabok med en stark, grön "månadsbesked"-yta överst – det enda djärva elementet.
-    Allt annat är lugnt: vitt på svalt papper, tunna linjer, siffrorna i fokus.
-    Typsnitt: Schibsted Grotesk (svensk tidningsgrotesk) med tabellsiffror.
-    Färger: skogsgrönt för pengar som växer, guld för Guldbot och snabbknappen, rött bara för förluster.
-    Mobil: flikrad nertill och snabbknapp. Dator: sidomeny till vänster.
-  */
-  @font-face { font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/schibsted-grotesk-latin-400-normal.woff2) format('woff2'); }
-  @font-face { font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url(fonts/schibsted-grotesk-latin-500-normal.woff2) format('woff2'); }
-  @font-face { font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url(fonts/schibsted-grotesk-latin-600-normal.woff2) format('woff2'); }
-  @font-face { font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/schibsted-grotesk-latin-700-normal.woff2) format('woff2'); }
-  @font-face { font-family: 'Schibsted Grotesk'; font-style: normal; font-weight: 800; font-display: swap; src: url(fonts/schibsted-grotesk-latin-800-normal.woff2) format('woff2'); }
-
   :root {
     color-scheme: light;
-    --papper: #f2f4f0; --yta: #ffffff; --yta-2: #e9ede8; --yta-3: #dfe5de;
-    --ink: #142019; --text-2: #4d5a53; --text-3: #737f78; --linje: #dce2dc;
-    --skog: #1a6b4c; --pa-skog: #ffffff; --skog-djup: #0f4532; --skog-ljus: #d8ebe1; --guld: #c48f12; --guld-ljus: #f6ead0;
-    --vinst: #15784e; --forlust: #b63f2a; --varning: #a86a10;
-    --s1: #1a8a5f; --s2: #c48f12; --s3: #3f6fb8; --s4: #c0533a;
-    --radie-stor: 22px; --radie: 16px; --radie-liten: 10px;
-    --font: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    /* för diagrammodulen */
-    --grid: var(--linje); --axis: #c3cbc4; --text-muted: var(--text-3); --text-secondary: var(--text-2); --text-primary: var(--ink); --surface-1: var(--yta); --border: var(--linje);
-    --meny: 0px;
+    --page: #f9f9f7; --surface-1: #fcfcfb; --surface-2: #f0efec;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11, 11, 11, 0.10);
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --good-text: #006300; --good: #0ca30c; --critical: #d03b3b; --warning: #fab219; --gold: #b8860b;
+    --radius: 14px; --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
-      --papper: #0d1411; --yta: #152019; --yta-2: #1d2a23; --yta-3: #26342c;
-      --ink: #e6ede8; --text-2: #a9b7af; --text-3: #85938b; --linje: #26342c;
-      --skog: #3aa57c; --pa-skog: #06130d; --skog-djup: #12392a; --skog-ljus: #183527; --guld: #d2a33a; --guld-ljus: #3a2f16;
-      --vinst: #3dbe84; --forlust: #e2715c; --varning: #e0a443;
-      --s1: #35a077; --s2: #b8861f; --s3: #6a93d6; --s4: #d06c56;
-      --axis: #3a4a41;
+      --page: #0d0d0d; --surface-1: #1a1a19; --surface-2: #232321;
+      --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --border: rgba(255, 255, 255, 0.10);
+      --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+      --good-text: #0ca30c; --good: #0ca30c; --critical: #e66767; --gold: #e3b341;
     }
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
+  main > *, .card, .rutnat > * { min-width: 0; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--papper); color: var(--ink); font: 16px/1.5 var(--font);
-    -webkit-font-smoothing: antialiased; overflow-x: clip;
+    margin: 0; background: var(--page); color: var(--text-primary); font: 15px/1.45 var(--font);
+    padding: max(16px, env(safe-area-inset-top)) 14px max(32px, env(safe-area-inset-bottom));
   }
-  /* Tabellsiffror bara där siffror ska stå i linje – i löptext ger de för breda punkter och kommatecken. */
-  .belopp, .vardet, table { font-variant-numeric: tabular-nums; }
-  h1, h2, h3, p { margin: 0; }
-  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
-  h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
-  h3 { font-size: 16px; font-weight: 600; }
+  main { max-width: 960px; margin: 0 auto; display: grid; gap: 14px; }
+  h1, h2, h3 { margin: 0; font-weight: 600; }
+  h2 { font-size: 16px; } h3 { font-size: 15px; }
+  p { margin: 0; }
   button, input, select, textarea { font: inherit; color: inherit; }
   a { color: inherit; }
-  :focus-visible { outline: 2px solid var(--skog); outline-offset: 2px; border-radius: 6px; }
-  .liten, .small { font-size: 14px; } .pytte { font-size: 13px; } .muted { color: var(--text-3); }
-  .sek { color: var(--text-2); } .ter { color: var(--text-3); }
-  .vinst { color: var(--vinst); } .forlust { color: var(--forlust); }
+  .muted { color: var(--text-muted); } .secondary { color: var(--text-secondary); }
+  .small { font-size: 13px; } .num { font-variant-numeric: tabular-nums; }
+  .upp { color: var(--good-text); } .ned { color: var(--critical); }
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .card > h2 { margin-bottom: 10px; }
+  .rad { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mellan { justify-content: space-between; }
+  .rutnat { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  :focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
 
-  /* ---------- Skal ---------- */
-  .skal { min-height: 100vh; }
-  .sidomeny { display: none; }
-  .topp {
-    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: max(12px, env(safe-area-inset-top)) 16px 12px; background: color-mix(in srgb, var(--papper) 88%, transparent);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  header.card { display: grid; gap: 10px; }
+  .varumarke { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .tacka { width: 18px; height: 12px; border-radius: 3px; background: var(--gold); display: inline-block; }
+  .status {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary);
+    padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
   }
-  .topp h1 { font-size: 24px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .topp .knapprad { flex-wrap: nowrap; flex-shrink: 0; }
-  @media (max-width: 440px) { .topp .synk > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .topp .synk i { width: 10px; height: 10px; } }
-  .synk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); white-space: nowrap; }
-  .synk i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
-  .synk.ok i { background: var(--vinst); } .synk.fel i { background: var(--forlust); } .synk.sparar i { background: var(--guld); }
-  .lankknapp { text-decoration: none; font-size: 14px; color: var(--text-2); padding: 6px 12px; border: 1px solid var(--linje); border-radius: 999px; background: var(--yta); white-space: nowrap; }
-  main { padding: 4px 16px calc(110px + env(safe-area-inset-bottom)); max-width: 1080px; margin: 0 auto; display: grid; gap: 28px; }
-  .vy { display: grid; gap: 28px; }
-  .flikrad {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr);
-    background: color-mix(in srgb, var(--yta) 94%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border-top: 1px solid var(--linje); padding: 6px 4px max(6px, env(safe-area-inset-bottom));
-  }
-  .flikrad a { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; text-decoration: none; font-size: 11.5px; color: var(--text-3); border-radius: 12px; min-height: 48px; }
-  .flikrad a svg { width: 22px; height: 22px; }
-  .flikrad a[aria-current="page"] { color: var(--skog); font-weight: 600; }
-  .snabb {
-    position: fixed; right: 18px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 31; width: 58px; height: 58px; border-radius: 50%;
-    border: 0; background: var(--guld); color: #1b1404; display: grid; place-items: center; cursor: pointer;
-    box-shadow: 0 10px 24px color-mix(in srgb, var(--guld) 35%, transparent), 0 2px 6px rgba(0,0,0,.18);
-  }
-  .snabb svg { width: 28px; height: 28px; }
-  @media (min-width: 980px) {
-    :root { --meny: 240px; }
-    .skal { display: grid; grid-template-columns: var(--meny) minmax(0, 1fr); }
-    .sidomeny {
-      display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; padding: 24px 16px; border-right: 1px solid var(--linje);
-      background: var(--yta);
-    }
-    .marke { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; padding: 0 10px 18px; }
-    .marke b { display: inline-block; width: 22px; height: 14px; border-radius: 3px; background: var(--guld); box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--skog) 70%, transparent); }
-    .sidomeny a.post { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; text-decoration: none; color: var(--text-2); font-weight: 500; }
-    .sidomeny a.post svg { width: 20px; height: 20px; }
-    .sidomeny a.post:hover { background: var(--yta-2); }
-    .sidomeny a.post[aria-current="page"] { background: var(--skog-ljus); color: var(--skog); font-weight: 650; }
-    .sidomeny .fot { margin-top: auto; display: grid; gap: 10px; padding: 0 6px; }
-    .flikrad, .snabb { display: none; }
-    .topp { padding: 24px 32px 12px; }
-    .topp .lankknapp.mobil, .topp .synk { display: none; }
-    main { padding: 8px 32px 64px; }
-  }
+  .prick { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+  .status.ok .prick { background: var(--good); } .status.fel .prick { background: var(--critical); }
+  .status.sparar .prick { background: var(--warning); }
+  .lank { font-size: 14px; text-decoration: none; color: var(--text-secondary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
+  .hjalte { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .hjalte .varde { font-size: clamp(36px, 9vw, 52px); font-weight: 650; letter-spacing: -0.02em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .delta { font-weight: 600; }
 
-  /* ---------- Byggstenar ---------- */
-  .sektion { display: grid; gap: 12px; }
-  .sektionshuvud { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .panel { background: var(--yta); border-radius: var(--radie); padding: 18px; border: 1px solid var(--linje); min-width: 0; }
-  .panel.tat { padding: 6px 18px; }
-  .rutnat { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
-  .rutnat > * { min-width: 0; }
-  .nyckeltal { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); background: var(--yta); border-radius: var(--radie); overflow: hidden; border: 1px solid var(--linje); }
-  .nyckeltal > div { padding: 14px 16px; display: grid; gap: 2px; align-content: start; box-shadow: 1px 0 0 var(--linje), 0 1px 0 var(--linje); }
-  .nyckeltal .etikett { font-size: 13px; color: var(--text-2); }
-  .nyckeltal .tal { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
-  .nyckeltal .not { font-size: 12.5px; color: var(--text-3); }
-  .knapp {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 16px; border-radius: 999px;
-    border: 1px solid var(--linje); background: var(--yta); cursor: pointer; font-weight: 600; font-size: 15px; text-decoration: none; white-space: nowrap;
+  .flikar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .flikar::-webkit-scrollbar { display: none; }
+  .flikar a {
+    flex: none; text-decoration: none; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface-1); color: var(--text-secondary); font-size: 14px;
   }
-  .knapp:hover { background: var(--yta-2); }
-  .knapp.huvud { background: var(--skog); border-color: transparent; color: var(--pa-skog); }
-  .knapp.huvud:hover { background: color-mix(in srgb, var(--skog) 88%, #000); }
-  .knapp.liten { min-height: 34px; padding: 0 12px; font-size: 13.5px; }
-  .knapp.fara { color: var(--forlust); }
-  .knapp.text { border-color: transparent; background: transparent; padding: 0 8px; color: var(--skog); }
-  .knapprad { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--yta-2); color: var(--text-2); white-space: nowrap; }
-  .chip.gron { background: var(--skog-ljus); color: var(--skog); }
-  .chip.guld { background: var(--guld-ljus); color: var(--varning); }
-  .chip.rod { background: color-mix(in srgb, var(--forlust) 14%, var(--yta)); color: var(--forlust); }
-  .segment { display: inline-flex; background: var(--yta-2); border-radius: 999px; padding: 3px; gap: 2px; flex-wrap: wrap; }
-  .segment button { border: 0; background: transparent; border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 500; color: var(--text-2); cursor: pointer; min-height: 34px; }
-  .segment button[aria-pressed="true"] { background: var(--yta); color: var(--ink); font-weight: 650; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-  .tom { display: grid; gap: 12px; justify-items: start; padding: 22px 18px; border: 1.5px dashed var(--yta-3); border-radius: var(--radie); color: var(--text-2); }
+  .flikar a[aria-current="page"] { background: var(--text-primary); color: var(--surface-1); border-color: transparent; font-weight: 600; }
 
-  /* Listor */
-  .lista { display: grid; }
-  .rad { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--linje); }
-  .rad:first-child { border-top: 0; }
-  .rad .namn { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rad .under { grid-column: 1 / -1; font-size: 13.5px; color: var(--text-2); }
-  .rad .belopp { font-weight: 650; text-align: right; white-space: nowrap; }
-  .rad .meta { font-size: 13px; color: var(--text-3); }
-  button.rad { width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-bottom: 0; cursor: pointer; font: inherit; color: inherit; }
-  button.rad:first-child { border-top: 0; }
-  button.rad:hover .namn { color: var(--skog); }
-  .prick { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; background: var(--text-3); }
+  .knapp { border: 1px solid var(--border); background: var(--surface-1); padding: 8px 12px; border-radius: 10px; cursor: pointer; min-height: 40px; }
+  .knapp:hover { background: var(--surface-2); }
+  .knapp.primar { background: var(--text-primary); color: var(--surface-1); border-color: transparent; font-weight: 600; }
+  .knapp.liten { min-height: 32px; padding: 4px 10px; font-size: 13px; }
+  .knapp.fara { color: var(--critical); }
+  .knapprad { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  /* Staplar och mätare */
-  .spar { height: 10px; border-radius: 5px; background: var(--yta-2); position: relative; overflow: hidden; }
-  .spar > span { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--skog); }
-  .spar > span.prognos { background: color-mix(in srgb, var(--skog) 28%, transparent); }
-  .katlista { display: grid; gap: 10px; }
-  .katrad { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; }
-  .katrad .spar { grid-column: 1 / -1; height: 8px; }
-  .katrad .namn { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .katrad .vardet { font-weight: 650; white-space: nowrap; }
-  .katrad .not { grid-column: 1 / -1; font-size: 12.5px; color: var(--text-3); margin-top: -2px; }
+  .rutor { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .ruta { background: var(--surface-2); border-radius: 12px; padding: 12px; display: grid; gap: 2px; }
+  .ruta .etikett { font-size: 13px; color: var(--text-secondary); }
+  .ruta .tal { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .ruta .not { font-size: 12px; color: var(--text-muted); }
 
-  /* Hjälten */
-  .hjalte {
-    background: var(--skog-djup); color: #f1f7f3; border-radius: var(--radie-stor); padding: 22px 20px 20px; display: grid; gap: 18px;
-    position: relative; overflow: hidden;
-  }
-  .hjalte::after { content: ''; position: absolute; right: -60px; top: -60px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--guld) 38%, transparent), transparent); pointer-events: none; }
-  .hjalte .etikett { font-size: 15px; color: color-mix(in srgb, #f1f7f3 75%, transparent); }
-  .hjalte .stort { font-size: clamp(44px, 12vw, 64px); font-weight: 800; letter-spacing: -0.035em; line-height: 1; white-space: nowrap; }
-  .hjalte .stort small { font-size: 0.42em; font-weight: 700; letter-spacing: 0; margin-left: 6px; color: color-mix(in srgb, #f1f7f3 75%, transparent); }
-  .hjalte .perdag { font-size: 16px; color: #f1f7f3; }
-  .hjalte .perdag b { color: #f5d27a; font-weight: 700; }
-  .bana { position: relative; height: 12px; border-radius: 6px; background: rgba(255,255,255,.14); }
-  .bana > span { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: #f5d27a; }
-  .bana > i { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #fff; border-radius: 1px; }
-  .banatext { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: color-mix(in srgb, #f1f7f3 72%, transparent); flex-wrap: wrap; }
-  .hjalte .knapp { color: var(--ink); border-color: transparent; }
-  .hjalte .delar { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid rgba(255,255,255,.14); padding-top: 16px; }
-  .hjalte .delar div { display: grid; gap: 1px; }
-  .hjalte .delar span { font-size: 12.5px; color: color-mix(in srgb, #f1f7f3 70%, transparent); }
-  .hjalte .delar b { font-size: 18px; font-weight: 700; white-space: nowrap; }
-  .formogenhet { display: grid; gap: 6px; }
-  .formogenhet .stort { font-size: clamp(32px, 8vw, 40px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; white-space: nowrap; }
-  @media (min-width: 760px) {
-    .oversikt-topp { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; align-items: stretch; }
-  }
-  .oversikt-topp { display: grid; gap: 14px; }
+  .meddelande { padding: 10px 12px; border-radius: 10px; background: var(--surface-2); font-size: 14px; color: var(--text-secondary); }
+  .meddelande.fel { border-left: 3px solid var(--critical); }
+  .meddelande.info { border-left: 3px solid var(--warning); }
+  .motivation { display: grid; gap: 8px; }
+  .motivation p { font-size: 15px; }
+  .motivation b { font-variant-numeric: tabular-nums; }
 
-  /* Tips */
-  .tips-lista { display: grid; gap: 10px; }
-  .tipskort { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: 14px; background: var(--yta); border: 1px solid var(--linje); border-radius: var(--radie); padding: 14px 16px 14px 0; overflow: hidden; }
-  .tipskort::before { content: ''; border-radius: 0 4px 4px 0; background: var(--text-3); }
-  .tipskort.varning::before { background: var(--forlust); }
-  .tipskort.tips::before { background: var(--guld); }
-  .tipskort.bra::before { background: var(--vinst); }
-  .tipskort h3 { font-size: 15.5px; margin-bottom: 2px; }
-  .tipskort p { font-size: 14.5px; color: var(--text-2); }
+  .stapel-mal { height: 10px; border-radius: 5px; background: var(--surface-2); position: relative; overflow: hidden; }
+  .stapel-mal .fyll { position: absolute; inset: 0 auto 0 0; background: var(--series-1); border-radius: 5px; }
+  .stapel-mal .prognos { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--series-1) 30%, transparent); border-radius: 5px; }
+  .post { border-top: 1px solid var(--grid); padding: 12px 0; display: grid; gap: 6px; }
+  .post:first-child { border-top: 0; padding-top: 0; }
+  .post:last-child { padding-bottom: 0; }
+  .post h3 { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .post h3 .belopp { font-variant-numeric: tabular-nums; }
+  dl.fakta { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 14px; }
+  dl.fakta dt { color: var(--text-secondary); }
+  dl.fakta dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  details summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; }
 
-  /* Diagram */
+  .tabellram { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 7px 8px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--text-secondary); font-weight: 500; }
+  td input { width: 110px; padding: 5px 8px; border: 1px solid var(--axis); border-radius: 6px; background: var(--page); text-align: right; font-size: 14px; }
+
+  .budgetlista { display: grid; }
+  .budgetrad { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--grid); font-size: 14px; }
+  .budgetrad.med-utfall { grid-template-columns: minmax(0, 1fr) auto 104px; }
+  .budgetrad.huvud { border-top: 0; color: var(--text-secondary); font-size: 13px; padding-top: 0; }
+  .budgetnamn { background: none; border: 0; padding: 4px 0; text-align: left; cursor: pointer; font: inherit; color: inherit; min-height: 36px; }
+  .budgetnamn small { display: block; color: var(--text-muted); font-size: 12px; }
+  .budgetplan { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .budgetutfall { display: grid; gap: 2px; text-align: right; }
+  .budgetutfall input { width: 100%; padding: 6px 8px; border: 1px solid var(--axis); border-radius: 6px; background: var(--page); text-align: right; font-size: 16px; }
+  .budgetutfall small { font-size: 11px; white-space: nowrap; }
+  .fordelning { display: flex; height: 18px; border-radius: 9px; overflow: hidden; gap: 2px; background: var(--surface-2); }
+  .fordelning span { display: block; height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-secondary); margin: 4px 0 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 2px; border-radius: 1px; }
+  .legend i.ruta-ikon { width: 10px; height: 10px; border-radius: 3px; }
+
   .diagram { position: relative; }
   .diagram svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
   .diagram svg:focus { outline: none; }
-  .diagram text { font: 11.5px var(--font); fill: var(--text-3); font-variant-numeric: tabular-nums; }
-  .diagram text.etikett { fill: var(--text-2); font-size: 12px; }
-  .diagram > .tips { position: absolute; pointer-events: none; background: var(--yta); border: 1px solid var(--linje); border-radius: 12px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 6px 20px rgba(0,0,0,.12); min-width: 150px; display: none; z-index: 5; }
-  .diagram .tips .rubrik { color: var(--text-3); margin-bottom: 4px; }
-  .diagram .tips .rad { display: grid; grid-template-columns: 14px 1fr auto; gap: 6px; align-items: center; padding: 0; border: 0; }
-  .diagram .tips .rad i { height: 2px; border-radius: 1px; }
-  .diagram .tips .rad b { text-align: right; }
-  .diagram .tips .rad span { color: var(--text-2); }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-2); }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
-  .legend i.ruta { width: 10px; height: 10px; border-radius: 3px; }
+  .diagram text { font: 11px var(--font); fill: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .diagram text.etikett { fill: var(--text-secondary); font-size: 12px; }
+  .tips { position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.12); min-width: 150px; display: none; z-index: 2; }
+  .tips .rubrik { color: var(--text-muted); margin-bottom: 4px; }
+  .tips .rad { display: grid; grid-template-columns: 14px 1fr auto; gap: 6px; align-items: center; }
+  .tips .rad i { height: 2px; border-radius: 1px; }
+  .tips .rad b { font-variant-numeric: tabular-nums; text-align: right; }
+  .tips .rad span { color: var(--text-secondary); }
 
-  /* Tabeller och värmekarta */
-  .tabellram { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  @media (max-width: 420px) { table { font-size: 13px; } th, td { padding: 7px 4px; } }
-  th, td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--linje); white-space: nowrap; }
-  th:first-child, td:first-child { text-align: left; }
-  th { color: var(--text-2); font-weight: 500; font-size: 13px; }
-  td.varme { border-radius: 6px; border-bottom: 2px solid var(--yta); }
-  @media (max-width: 560px) { .smal-dold { display: none; } }
+  .staplar { display: grid; gap: 4px; }
+  .stapelrad { display: grid; grid-template-columns: 70px 1fr 90px; gap: 8px; align-items: center; font-size: 13px; }
+  .stapeletikett { color: var(--text-secondary); }
+  .stapelspar { position: relative; height: 16px; }
+  .med-neg .stapelspar::before { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--axis); }
+  .stapel { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 4px; }
+  .stapel.pos { background: var(--good); } .stapel.neg { background: var(--critical); }
+  .stapelvarde { text-align: right; font-variant-numeric: tabular-nums; }
 
-  /* Ark (formulär) */
-  dialog.ark {
-    border: 0; padding: 0; background: var(--yta); color: var(--ink); width: 100%; max-width: 100%; max-height: 92dvh; margin: auto 0 0;
-    border-radius: 24px 24px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,.2); overflow: hidden;
+  .kalkyl { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+  @media (max-width: 700px) { .kalkyl { grid-template-columns: minmax(0, 1fr); } }
+  .falt { display: grid; gap: 4px; font-size: 14px; }
+  .falt input, .falt select, dialog input, dialog select, dialog textarea {
+    padding: 9px 10px; border: 1px solid var(--axis); border-radius: 8px; background: var(--page); font-size: 16px; width: 100%; min-width: 0;
   }
-  dialog.ark::backdrop { background: rgba(10, 20, 15, .45); }
-  dialog.ark[open] { animation: upp .22s ease-out; }
-  @keyframes upp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) { dialog.ark[open] { animation: none; } }
-  @media (min-width: 700px) { dialog.ark { width: min(560px, calc(100vw - 32px)); margin: auto; border-radius: 24px; } }
-  .ark form, .ark .innehall { display: grid; gap: 16px; padding: 10px 20px calc(20px + env(safe-area-inset-bottom)); max-height: 92dvh; overflow-y: auto; }
-  .ark .handtag { width: 40px; height: 5px; border-radius: 3px; background: var(--yta-3); justify-self: center; margin-top: 4px; }
-  .ark h2 { font-size: 22px; }
-  .falt { display: grid; gap: 6px; font-size: 14px; color: var(--text-2); font-weight: 500; }
-  .falt input:not([type=checkbox]), .falt select, .falt textarea {
-    width: 100%; min-width: 0; min-height: 48px; padding: 10px 14px; border: 1.5px solid var(--yta-3); border-radius: 12px; background: var(--papper); color: var(--ink); font-size: 16px; font-weight: 500;
-  }
-  .falt input:not([type=checkbox]):focus, .falt select:focus { border-color: var(--skog); outline: none; }
-  .falt .hjalp { font-size: 12.5px; color: var(--text-3); font-weight: 400; }
-  .beloppfalt input { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; min-height: 66px; text-align: left; }
-  .tva { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .tva > * { min-width: 0; }
-  .val { display: flex; flex-wrap: wrap; gap: 8px; }
-  .val button { border: 1.5px solid var(--yta-3); background: var(--yta); border-radius: 999px; padding: 7px 13px; font-size: 14px; cursor: pointer; font-weight: 500; min-height: 38px; }
-  .val button[aria-pressed="true"] { border-color: var(--skog); background: var(--skog-ljus); color: var(--skog); font-weight: 650; }
-  .kryss { display: flex; gap: 10px; align-items: center; font-size: 15px; }
-  .kryss input { width: 20px; height: 20px; accent-color: var(--skog); }
-  .arkknappar { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; position: sticky; bottom: 0; background: var(--yta); padding-top: 4px; }
-  .arkknappar .hoger { display: flex; gap: 10px; margin-left: auto; }
-  .felrad { color: var(--forlust); font-size: 14px; }
-  .snabbmeny { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-  .snabbmeny button { display: grid; justify-items: center; gap: 8px; padding: 16px 6px; border-radius: 18px; border: 1px solid var(--linje); background: var(--papper); cursor: pointer; font-weight: 600; font-size: 14px; }
-  .snabbmeny button svg { width: 26px; height: 26px; color: var(--skog); }
-  .snabbmeny button:hover { background: var(--yta-2); }
-  .notis {
-    position: fixed; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60; display: none; align-items: center; gap: 14px;
-    max-width: min(520px, calc(100vw - 28px)); background: var(--ink); color: var(--papper); padding: 12px 14px 12px 18px; border-radius: 14px; font-size: 14.5px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
-  }
-  .notis button { background: transparent; border: 1px solid currentColor; color: inherit; border-radius: 999px; padding: 4px 12px; cursor: pointer; font-weight: 600; }
-  @media (min-width: 980px) { .notis { bottom: 28px; left: calc(50% + var(--meny) / 2); } }
-  .meddelande { padding: 12px 14px; border-radius: 12px; background: var(--yta); border: 1px solid var(--linje); font-size: 14.5px; color: var(--text-2); }
-  .meddelande.fel { border-left: 4px solid var(--forlust); }
-  .meddelande.info { border-left: 4px solid var(--guld); }
-  .lasupp { max-width: 440px; }
-  details summary { cursor: pointer; color: var(--text-2); font-size: 14px; }
-  footer { max-width: 1080px; margin: 0 auto; padding: 0 16px calc(120px + env(safe-area-inset-bottom)); font-size: 13px; color: var(--text-3); }
-  @media (min-width: 980px) { footer { padding: 0 32px 40px; } }
-  @media (max-width: 420px) { .hjalte .delar { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hjalte .delar div:last-child { grid-column: 1 / -1; } }
+  .resultat { font-size: clamp(30px, 7vw, 42px); font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .forval { display: flex; gap: 6px; flex-wrap: wrap; }
+  .forval button { border: 1px solid var(--border); background: var(--surface-1); border-radius: 999px; padding: 4px 10px; font-size: 13px; cursor: pointer; }
+
+  dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-1); color: var(--text-primary); padding: 20px; width: min(500px, calc(100vw - 28px)); max-height: calc(100dvh - 28px); overflow-y: auto; }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog form { display: grid; gap: 12px; }
+  dialog form > *, .tva > * { min-width: 0; }
+  dialog label { display: grid; gap: 5px; font-size: 14px; }
+  .tva { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kryss { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+  .kryss input { width: auto; }
+  .notisruta { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); max-width: min(520px, calc(100vw - 28px)); background: var(--text-primary); color: var(--surface-1); padding: 10px 12px 10px 14px; border-radius: 12px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.25); display: none; z-index: 10; align-items: center; gap: 12px; }
+  .notisruta button { background: transparent; border: 1px solid currentColor; color: inherit; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+  footer { max-width: 960px; margin: 6px auto 0; font-size: 13px; color: var(--text-muted); }
+  @media (max-width: 520px) { .stapelrad { grid-template-columns: 56px 1fr 78px; } }
+  @media (prefers-reduced-motion: no-preference) { .stapel-mal .fyll { transition: width .4s ease; } }
 </style>
 </head>
 <body>
-<div class="skal">
-  <nav class="sidomeny" aria-label="Avsnitt">
-    <div class="marke"><b aria-hidden="true"></b>Ekonomi</div>
-    <div id="sidolankar"></div>
-    <div class="fot">
-      <button type="button" class="knapp huvud" id="sidoSnabb">Lägg till</button>
-      <span class="synk" id="synkSida"><i></i><span>Laddar …</span></span>
-      <a class="lankknapp" href="index.html">Till marknaderna</a>
-    </div>
-  </nav>
-  <div>
-    <header class="topp">
-      <h1 id="rubrik">Översikt</h1>
-      <div class="knapprad">
-        <span class="synk" id="synk"><i></i><span>Laddar …</span></span>
-        <a class="lankknapp mobil" href="index.html">Marknader</a>
+<main>
+  <header class="card">
+    <div class="rad mellan">
+      <div class="varumarke"><span class="tacka" aria-hidden="true"></span>Guldbot · Ekonomi</div>
+      <div class="rad">
+        <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
+        <a class="lank" href="index.html">Marknader →</a>
       </div>
-    </header>
-    <main id="innehall">
-      <div id="meddelande" class="meddelande" hidden></div>
-      <section class="panel lasupp" id="lasupp" hidden>
-        <form id="lasuppForm" style="display:grid; gap:14px">
-          <h2>Dina uppgifter är krypterade</h2>
-          <label class="falt">Lösenfras <input id="lasuppLosen" type="password" autocomplete="current-password" required></label>
-          <label class="kryss"><input type="checkbox" id="lasuppKomIhag" checked> Kom ihåg på den här enheten</label>
-          <div class="knapprad"><button class="knapp huvud" type="submit">Lås upp</button></div>
-          <p class="pytte ter">Lösenfrasen lämnar aldrig webbläsaren.</p>
-        </form>
-      </section>
-      <div id="vyer"></div>
-    </main>
-    <footer>Beräkningarna bygger på det du lägger in och på antagen avkastning. Tips och tumregler är generella och utgår från de mål du själv har ställt in. Det här är ett planeringsverktyg, inte ekonomisk rådgivning.</footer>
+    </div>
+    <div>
+      <div class="small secondary">Nettoförmögenhet</div>
+      <div class="hjalte"><span class="varde" id="formogenhet">–</span><span class="delta" id="formogenhetDelta"></span></div>
+    </div>
+    <p class="secondary" id="huvudrad"></p>
+  </header>
+
+  <nav class="flikar" aria-label="Avsnitt">
+    <a href="#oversikt" data-flik="oversikt">Översikt</a>
+    <a href="#trading" data-flik="trading">Trading</a>
+    <a href="#sparande" data-flik="sparande">Sparande</a>
+    <a href="#budget" data-flik="budget">Budget</a>
+    <a href="#mal" data-flik="mal">Mål och kalkylator</a>
+    <a href="#utgifter" data-flik="utgifter">Framtida utgifter</a>
+    <a href="#lagring" data-flik="lagring">Lagring</a>
+  </nav>
+
+  <div id="meddelande" class="meddelande" hidden></div>
+
+  <section class="card" id="lasupp" hidden>
+    <h2>Dina ekonomiuppgifter är krypterade</h2>
+    <form id="lasuppForm" style="display:grid; gap:10px; margin-top:8px">
+      <label class="falt">Lösenfras <input id="lasuppLosen" type="password" autocomplete="current-password" required></label>
+      <label class="kryss"><input type="checkbox" id="lasuppKomIhag" checked> Kom ihåg på den här enheten</label>
+      <div class="knapprad"><button class="knapp primar" type="submit">Lås upp</button></div>
+      <p class="small muted">Lösenfrasen lämnar aldrig webbläsaren. Utan den går filen i repot inte att läsa.</p>
+    </form>
+  </section>
+
+  <div id="vyer">
+    <section id="vy-oversikt" data-vy="oversikt" style="display:grid; gap:14px"></section>
+    <section id="vy-trading" data-vy="trading" style="display:grid; gap:14px" hidden></section>
+    <section id="vy-sparande" data-vy="sparande" style="display:grid; gap:14px" hidden></section>
+    <section id="vy-budget" data-vy="budget" style="display:grid; gap:14px" hidden></section>
+    <section id="vy-mal" data-vy="mal" style="display:grid; gap:14px" hidden></section>
+    <section id="vy-utgifter" data-vy="utgifter" style="display:grid; gap:14px" hidden></section>
+    <section id="vy-lagring" data-vy="lagring" style="display:grid; gap:14px" hidden></section>
   </div>
-</div>
-<nav class="flikrad" id="flikrad" aria-label="Avsnitt"></nav>
-<button type="button" class="snabb" id="snabbknapp" aria-label="Lägg till">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-</button>
-<dialog class="ark" id="ark"></dialog>
-<div class="notis" id="notis" role="status"><span id="notistext"></span><button type="button" id="notisAngra" hidden>Ångra</button></div>
-<script type="module" src="ekonomi-app.js"></script>
+</main>
+
+<footer>
+  <p>Beräkningarna är förenklade och bygger på det du lägger in. Antagen avkastning är ingen garanti. Det här är ett verktyg för din egen planering, inte ekonomisk rådgivning.</p>
+</footer>
+
+<dialog id="formular"><form method="dialog" id="formularForm"></form></dialog>
+<div class="notisruta" id="notisruta" role="status"><span id="notistext"></span><button type="button" id="notisAngra" hidden>Ångra</button></div>
+
+<script type="module">
+import { tal } from './engine.js';
+import { gh, lager } from './github.js';
+import { el, linjediagram, legend, stapeldiagram } from './diagram.js';
+import * as B from './ekonomi-berakning.js';
+import { tomEkonomi, normalisera, nyttId, lokal, lasMoln, finnsIMoln, sparaMoln, laggTillAffarIData, kryptera } from './ekonomi-lagring.js';
+
+// ---------- Format ----------
+const kr = (v, dec = 0) => (v == null || !Number.isFinite(v) ? '–' : `${tal(v, dec)} kr`);
+const krTecken = (v) => (v == null || !Number.isFinite(v) ? '–' : `${v > 0.5 ? '+' : ''}${tal(Math.abs(v) < 0.5 ? 0 : v, 0)} kr`);
+const proc = (v, dec = 1) => (v == null || !Number.isFinite(v) ? '–' : `${tal(v, dec)} %`);
+const procTecken = (v, dec = 1) => (v == null || !Number.isFinite(v) ? '–' : `${v > 0 ? '+' : ''}${tal(v, dec)} %`);
+const klass = (v) => (v > 0 ? 'upp' : v < 0 ? 'ned' : '');
+const datumFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' });
+const manadFmt = new Intl.DateTimeFormat('sv-SE', { month: 'short', year: '2-digit' });
+const manadLangFmt = new Intl.DateTimeFormat('sv-SE', { month: 'long', year: 'numeric' });
+const klockFmt = new Intl.DateTimeFormat('sv-SE', { hour: '2-digit', minute: '2-digit' });
+const datum = (d) => (d ? datumFmt.format(new Date(`${d}T12:00:00Z`)) : '–');
+const manad = (m) => manadFmt.format(new Date(`${m}-15T12:00:00Z`));
+const manadLang = (m) => manadLangFmt.format(new Date(`${m}-15T12:00:00Z`));
+const tolkaTal = (v) => { const n = Number(String(v ?? '').replace(/\s/g, '').replace(/−/g, '-').replace(',', '.')); return String(v ?? '').trim() !== '' && Number.isFinite(n) ? n : null; };
+const $ = (id) => document.getElementById(id);
+const tidRelativ = (d) => { const m = B.manaderMellan(B.idag(), d); return m < 1 ? `om ${Math.max(0, Math.round(m * 30.44))} dagar` : m < 24 ? `om ${Math.round(m)} mån` : `om ${tal(m / 12, 1)} år`; };
+
+// ---------- Tillstånd ----------
+const t = {
+  data: lokal.las() || tomEkonomi(),
+  lage: 'lokal',          // 'lokal' | 'kan-synka' | 'last' | 'synk'
+  losen: '',
+  salt: null,
+  sparTimer: null,
+  angra: null,
+  guldbotHistorik: [],
+  budgetManad: B.manadNyckel(B.idag()),
+  tradingPeriod: 'ar',
+  kalkyl: { start: 10000, spar: 2000, avk: 7, ar: 10, mal: '' },
+};
+
+function satStatus(text, typ = '') { $('status').className = `status ${typ}`; $('statustext').textContent = text; }
+function visaMeddelande(text, typ = 'info') { const m = $('meddelande'); m.hidden = !text; m.className = `meddelande ${typ}`; m.textContent = text || ''; }
+function notis(text, angra = null) {
+  const r = $('notisruta');
+  $('notistext').textContent = text;
+  $('notisAngra').hidden = !angra;
+  t.angra = angra;
+  r.style.display = 'flex';
+  clearTimeout(notis.timer);
+  notis.timer = setTimeout(() => { r.style.display = 'none'; t.angra = null; }, angra ? 8000 : 3500);
+}
+$('notisAngra').addEventListener('click', () => { if (t.angra) { t.angra(); t.angra = null; } $('notisruta').style.display = 'none'; });
+
+// Alla ändringar går via andra(): sparas lokalt direkt och synkas krypterat efter en kort paus.
+function andra(fn, { meddelande = null, angraBar = false } = {}) {
+  const fore = JSON.stringify(t.data);
+  fn(t.data);
+  t.data.uppdaterad = new Date().toISOString();
+  lokal.spara(t.data);
+  rendera();
+  schemalaggSynk();
+  if (meddelande) notis(meddelande, angraBar ? () => { t.data = normalisera(JSON.parse(fore)); t.data.uppdaterad = new Date().toISOString(); lokal.spara(t.data); rendera(); schemalaggSynk(); } : null);
+}
+
+function schemalaggSynk() {
+  if (t.lage !== 'synk') { uppdateraLagringsstatus(); return; }
+  satStatus('Sparar …', 'sparar');
+  clearTimeout(t.sparTimer);
+  t.sparTimer = setTimeout(synka, 1500);
+}
+
+async function synka() {
+  try {
+    const kuvert = await sparaMoln(gh, t.data, t.losen, t.salt);
+    t.salt = kuvert.salt;
+    satStatus(`Synkad ${klockFmt.format(new Date())}`, 'ok');
+  } catch (e) {
+    satStatus('Kunde inte synka', 'fel');
+    visaMeddelande(`Ändringen är sparad på den här enheten men kunde inte synkas till GitHub: ${e.message}`, 'fel');
+  }
+}
+
+function uppdateraLagringsstatus() {
+  if (t.lage === 'synk') satStatus('Synkad', 'ok');
+  else if (t.lage === 'last') satStatus('Låst', 'fel');
+  else satStatus('Sparas på den här enheten');
+}
+
+function slaIhopKo() {
+  const ko = lokal.ko();
+  if (!ko.length) return 0;
+  let antal = 0;
+  for (const a of ko) if (laggTillAffarIData(t.data, a)) antal++;
+  lokal.tomKo();
+  return antal;
+}
+
+// ---------- Uppstart ----------
+async function starta() {
+  rendera();
+  uppdateraLagringsstatus();
+  laddaGuldbotHistorik();
+  if (!gh.aktiv()) {
+    const n = slaIhopKo();
+    if (n) andra(() => {}, { meddelande: `${n} affärer från Guldbot har lagts till.` });
+    return;
+  }
+  let finns = false;
+  try { finns = await finnsIMoln(gh); } catch (e) { visaMeddelande(`Kunde inte nå GitHub: ${e.message}. Visar uppgifterna på den här enheten.`, 'fel'); return; }
+  if (!finns) {
+    t.lage = 'kan-synka';
+    uppdateraLagringsstatus();
+    const n = slaIhopKo();
+    if (n) andra(() => {}, { meddelande: `${n} affärer från Guldbot har lagts till.` });
+    rendera();
+    return;
+  }
+  const losen = lokal.losen();
+  if (losen) await lasUpp(losen, lokal.komIhag(), true);
+  else visaLast();
+}
+
+function visaLast() {
+  t.lage = 'last';
+  uppdateraLagringsstatus();
+  $('lasupp').hidden = false;
+  $('vyer').hidden = true;
+  document.querySelector('.flikar').hidden = true;
+  $('formogenhet').textContent = '••••';
+  $('formogenhetDelta').textContent = '';
+  $('huvudrad').textContent = 'Lås upp med din lösenfras för att se din ekonomi.';
+  $('lasuppLosen').focus();
+}
+
+async function lasUpp(losen, komIhag, tyst = false) {
+  satStatus('Låser upp …', 'sparar');
+  try {
+    const m = await lasMoln(gh, losen);
+    t.losen = losen;
+    t.salt = m.kuvert.salt;
+    lokal.sparaLosen(losen, komIhag);
+    const lokalData = lokal.las();
+    const lokalNyare = lokalData?.uppdaterad && (!m.data.uppdaterad || lokalData.uppdaterad > m.data.uppdaterad);
+    t.data = lokalNyare ? lokalData : m.data;
+    t.lage = 'synk';
+    $('lasupp').hidden = true;
+    $('vyer').hidden = false;
+    document.querySelector('.flikar').hidden = false;
+    const n = slaIhopKo();
+    lokal.spara(t.data);
+    rendera();
+    if (lokalNyare || n) schemalaggSynk(); else satStatus(`Synkad ${klockFmt.format(new Date())}`, 'ok');
+    if (n) notis(`${n} affärer från Guldbot har lagts till.`);
+  } catch (e) {
+    if (!tyst) visaMeddelande(e.message === 'Fel lösenfras.' ? 'Fel lösenfras. Försök igen.' : `Kunde inte låsa upp: ${e.message}`, 'fel');
+    lokal.glomLosen();
+    visaLast();
+  }
+}
+
+$('lasuppForm').addEventListener('submit', (e) => { e.preventDefault(); visaMeddelande(''); lasUpp($('lasuppLosen').value, $('lasuppKomIhag').checked); });
+
+async function laddaGuldbotHistorik() {
+  try {
+    const p = gh.aktiv() ? await gh.lasFil('docs/positioner.json') : await (await fetch(`positioner.json?t=${Date.now()}`, { cache: 'no-store' })).json();
+    t.guldbotHistorik = p.historik || [];
+    if (aktivFlik() === 'trading') renderTrading();
+  } catch { t.guldbotHistorik = []; }
+}
+
+// ---------- Flikar ----------
+const FLIKAR = ['oversikt', 'trading', 'sparande', 'budget', 'mal', 'utgifter', 'lagring'];
+const aktivFlik = () => { const h = location.hash.slice(1); return FLIKAR.includes(h) ? h : 'oversikt'; };
+function visaFlik() {
+  const f = aktivFlik();
+  document.querySelectorAll('.flikar a').forEach((a) => a.setAttribute('aria-current', a.dataset.flik === f ? 'page' : 'false'));
+  document.querySelectorAll('[data-vy]').forEach((v) => { v.hidden = v.dataset.vy !== f; });
+  rendera();
+}
+window.addEventListener('hashchange', visaFlik);
+
+// ---------- Gemensamt ----------
+function kort(rubrik, ...innehall) { return el('div', { class: 'card' }, rubrik ? el('h2', { text: rubrik }) : null, ...innehall); }
+function knapp(text, onClick, cls = 'knapp') { const b = el('button', { type: 'button', class: cls }, text); b.addEventListener('click', onClick); return b; }
+function ruta(etikett, varde, not = '', cls = '') { return el('div', { class: 'ruta' }, el('span', { class: 'etikett', text: etikett }), el('span', { class: `tal ${cls}`, text: varde }), not ? el('span', { class: 'not', text: not }) : null); }
+function fakta(par) { const dl = el('dl', { class: 'fakta' }); for (const [dt, dd, cls] of par) dl.append(el('dt', { text: dt }), el('dd', { class: cls || null, text: dd })); return dl; }
+function malStapel(andel, prognosAndel = null) {
+  const s = el('div', { class: 'stapel-mal', role: 'img', 'aria-label': `${tal(100 * andel, 0)} procent` });
+  if (prognosAndel != null) { const p = el('span', { class: 'prognos' }); p.style.width = `${Math.min(100, 100 * prognosAndel)}%`; s.append(p); }
+  const f = el('span', { class: 'fyll' }); f.style.width = `${Math.min(100, Math.max(0, 100 * andel))}%`; s.append(f);
+  return s;
+}
+const tomRad = (text, ...knappar) => el('div', { style: 'display:grid; gap:10px' }, el('p', { class: 'secondary', text }), knappar.length ? el('div', { class: 'knapprad' }, ...knappar) : null);
+
+function totalVarde(datum = B.idag()) { return t.data.konton.reduce((s, k) => s + B.kontoVarde(k, t.data, datum), 0); }
+function snittAvkastning() {
+  const v = t.data.konton.map((k) => ({ v: Math.max(0, B.kontoVarde(k, t.data)), a: Number(k.avkastning) || 0 }));
+  const sum = v.reduce((s, x) => s + x.v, 0);
+  return sum > 0 ? v.reduce((s, x) => s + x.v * x.a, 0) / sum : 0;
+}
+
+function rendera() {
+  renderHuvud();
+  const f = aktivFlik();
+  ({ oversikt: renderOversikt, trading: renderTrading, sparande: renderSparande, budget: renderBudget, mal: renderMal, utgifter: renderUtgifter, lagring: renderLagring })[f]();
+}
+
+function renderHuvud() {
+  const nu = totalVarde();
+  $('formogenhet').textContent = t.data.konton.length ? kr(nu) : '–';
+  const forraManad = B.manadSlut(B.laggTillManader(`${B.manadNyckel(B.idag())}-01`, -1).slice(0, 7));
+  const fore = totalVarde(forraManad);
+  const d = $('formogenhetDelta');
+  if (t.data.konton.length && fore) { d.textContent = `${krTecken(nu - fore)} denna månad`; d.className = `delta ${klass(nu - fore)}`; } else d.textContent = '';
+  const st = B.tradingStatistik(t.data.affarer, { fran: `${B.idag().slice(0, 4)}-01-01` });
+  const b = B.budgetSammanfattning(t.data);
+  const delar = [];
+  if (b.sparande > 0) delar.push(`Sparat ${kr(b.sparatHittills)} av ${kr(b.sparande)} i ${manadLang(B.manadNyckel(B.idag())).split(' ')[0]}`);
+  if (st.antal) delar.push(`trading i år ${krTecken(st.summa)}`);
+  $('huvudrad').textContent = (t.data.exempel ? 'Exempeldata – rensa under Lagring när du vill börja på riktigt. ' : '') +
+    (delar.length ? delar.join(' · ') : 'Lägg in dina konton, din budget och dina mål för att komma igång.');
+}
+
+// ---------- Översikt ----------
+function renderOversikt() {
+  const v = $('vy-oversikt');
+  const d = t.data;
+  const delar = [];
+  if (!d.konton.length && !d.affarer.length && !d.mal.length) {
+    delar.push(kort('Kom igång',
+      el('p', { class: 'secondary', text: 'Lägg in det du har, så räknar sidan ut resten. Du kan ändra allt i efterhand.' }),
+      el('ol', { style: 'margin:10px 0; padding-left:20px; display:grid; gap:6px' },
+        el('li', {}, el('b', { text: 'Konton: ' }), 'ditt tradingkapital, ISK/fonder, buffert och pension med dagens värde och månadssparande.'),
+        el('li', {}, el('b', { text: 'Budget: ' }), 'inkomster och fasta utgifter per månad.'),
+        el('li', {}, el('b', { text: 'Mål och framtida utgifter: ' }), 'vad du sparar till och när.')),
+      el('div', { class: 'knapprad' },
+        knapp('Lägg till konto', () => kontoFormular(), 'knapp primar'),
+        knapp('Testa med exempeldata', fyllExempel))));
+  }
+  // Huvuddiagram: förmögenhet och insatt
+  const serie = B.formogenhetsserie(d);
+  if (serie.length >= 2) {
+    const yta = el('div', { class: 'diagram' });
+    const leg = el('div', { class: 'legend' });
+    const c = kort('Förmögenheten över tid', leg, yta,
+      el('p', { class: 'small muted', text: 'Avståndet mellan linjerna är det dina pengar har tjänat (eller förlorat) utöver det du har satt in.' }));
+    delar.push(c);
+    queueMicrotask(() => {
+      const serier = [
+        { namn: 'Värde', kort: 'Värde', farg: 'var(--series-1)', punkter: serie.map((p) => [Date.parse(p.datum), p.varde]) },
+        { namn: 'Insatt', kort: 'Insatt', farg: 'var(--series-2)', punkter: serie.map((p) => [Date.parse(p.datum), p.insatt]) },
+      ];
+      legend(leg, serier.map((s) => ({ namn: s.namn, farg: s.farg })));
+      linjediagram(yta, { serier, xFormat: (x) => manad(new Date(x).toISOString().slice(0, 7)), yFormat: (x) => kr(x), yAxelFormat: (x) => tal(x / 1000, 0) + ' tkr', tipsTitel: 'Förmögenhet och insatt kapital', hojd: 240 });
+    });
+  }
+  // Den här månaden
+  if (d.konton.length || d.affarer.length || d.budget.inkomster.length) {
+    const m = B.manadNyckel(B.idag());
+    const b = B.budgetSammanfattning(d, m);
+    const st = B.tradingStatistik(d.affarer, { fran: `${m}-01`, till: B.manadSlut(m) });
+    const svit = B.sparsvit(d);
+    delar.push(kort(`Den här månaden · ${manadLang(m)}`, el('div', { class: 'rutor' },
+      ruta('Sparat', kr(b.sparatHittills), b.sparande > 0 ? `${tal(Math.min(999, (100 * b.sparatHittills) / b.sparande), 0)} % av planen ${kr(b.sparande)}` : 'Inget månadssparande planerat'),
+      ruta('Trading', krTecken(st.summa), st.antal ? `${st.antal} affärer · ${proc(st.traffProc, 0)} träff` : 'Inga affärer ännu', klass(st.summa)),
+      ruta('Kvar i budgeten', kr(b.kvar), b.inkomster ? `av ${kr(b.inkomster)} i inkomster` : 'Lägg in din budget', b.kvar < 0 ? 'ned' : ''),
+      ruta('Sparsvit', `${svit} mån`, svit ? 'i rad med sparmålet nått' : 'Nå sparplanen för att starta en svit'))));
+  }
+  // Motivation
+  const mot = motivation();
+  if (mot.length) delar.push(kort('Så går det för dig', el('div', { class: 'motivation' }, ...mot.map((txt) => el('p', {}, ...txt)))));
+  // Mål
+  if (d.mal.length) {
+    delar.push(kort('Mål', ...d.mal.slice(0, 4).map((mal) => {
+      const p = B.malPrognos(mal, d);
+      return el('div', { class: 'post' },
+        el('h3', {}, el('span', { text: mal.namn }), el('span', { class: 'belopp', text: `${kr(p.nuvarande)} av ${kr(mal.belopp)}` })),
+        malStapel(p.andelNu, p.prognosAndel),
+        el('p', { class: `small ${p.iFas ? 'upp' : 'secondary'}`, text: p.iFas ? `I fas – nås ${datum(p.nasDatum)} med nuvarande sparande.` : `Spara ${kr(p.kravSpar)}/mån (nu ${kr(p.manadssparande)}) för att nå målet ${datum(mal.datum)}.` }));
+    }), knapp('Alla mål och kalkylatorn →', () => { location.hash = 'mal'; }, 'knapp liten')));
+  }
+  // Kommande utgifter
+  const plan = B.utgiftsplan(d.utgifter).filter((u) => !u.passerad).slice(0, 3);
+  if (plan.length) {
+    delar.push(kort('Kommande utgifter', ...plan.map((u) => el('div', { class: 'post' },
+      el('h3', {}, el('span', { text: `${u.namn} · ${datum(u.nastaDatum)}` }), el('span', { class: 'belopp', text: kr(u.belopp) })),
+      malStapel(u.andel),
+      el('p', { class: 'small secondary', text: u.kvar > 0 ? `Lägg undan ${kr(u.perManad)}/mån (${kr(u.kvar)} kvar, ${tidRelativ(u.nastaDatum)}).` : 'Fullt sparat.' })))));
+  }
+  // Konton
+  if (d.konton.length) {
+    const tab = el('table', {}, el('tr', {}, ...['Konto', 'Värde', 'Avkastning', 'Per månad'].map((h) => el('th', { text: h }))),
+      ...d.konton.map((k) => { const u = B.kontoUtveckling(k, d); return el('tr', {}, el('td', { text: k.namn }), el('td', { text: kr(u.varde) }), u.proc == null ? el('td', { text: '–' }) : el('td', { class: klass(u.avkastning) }, krTecken(u.avkastning), el('br'), el('small', { text: procTecken(u.proc) })), el('td', { text: k.manadssparande ? kr(k.manadssparande) : '–' })); }));
+    delar.push(kort('Konton', el('div', { class: 'tabellram' }, tab)));
+  }
+  v.replaceChildren(...delar);
+}
+
+function motivation() {
+  const d = t.data;
+  const ut = [];
+  const b = (text) => el('b', { text });
+  const m = B.manadNyckel(B.idag());
+  const bs = B.budgetSammanfattning(d, m);
+  if (bs.sparande > 0) {
+    const andel = (100 * bs.sparatHittills) / bs.sparande;
+    ut.push(andel >= 100
+      ? ['Du har redan nått månadens sparmål: ', b(kr(bs.sparatHittills)), ' insatt. Snyggt!']
+      : ['Du har sparat ', b(kr(bs.sparatHittills)), ` av ${kr(bs.sparande)} den här månaden. `, b(kr(bs.sparande - bs.sparatHittills)), ' kvar till målet.']);
+  }
+  const svit = B.sparsvit(d);
+  if (svit >= 2) ut.push(['Du har nått sparplanen ', b(`${svit} månader i rad`), '. Håll i!']);
+  const ar = B.tradingStatistik(d.affarer, { fran: `${B.idag().slice(0, 4)}-01-01` });
+  if (ar.antal >= 3) {
+    ut.push(['Trading i år: ', b(krTecken(ar.summa)), ` på ${ar.antal} affärer, ${proc(ar.traffProc, 0)} träffsäkerhet och i snitt `, b(krTecken(ar.forvantat)), ' per affär.']);
+  }
+  const varde = totalVarde();
+  const spar = B.planeratSparande(d);
+  const avk = snittAvkastning();
+  if (varde > 0 && spar > 0) {
+    const tio = B.slutvarde(varde, spar, avk, 120);
+    ut.push(['Fortsätter du spara ', b(`${kr(spar)}/mån`), ` med ${proc(avk, 1)} avkastning per år har du ungefär `, b(kr(Math.round(tio / 1000) * 1000)), ' om 10 år.']);
+    const ms = B.nastaMilstolpe(varde, spar, avk);
+    if (ms.datum) ut.push(['Nästa milstolpe: ', b(kr(ms.mal)), ` – i nuvarande takt ${datum(ms.datum)} (${tidRelativ(ms.datum)}).`]);
+  }
+  return ut;
+}
+
+// ---------- Trading ----------
+function renderTrading() {
+  const v = $('vy-trading');
+  const d = t.data;
+  const ar = B.idag().slice(0, 4);
+  const perioder = { manad: [`${B.manadNyckel(B.idag())}-01`, 'Den här månaden'], ar: [`${ar}-01-01`, `I år (${ar})`], allt: ['0000-00-00', 'All tid'] };
+  const [fran, periodNamn] = perioder[t.tradingPeriod];
+  const st = B.tradingStatistik(d.affarer, { fran });
+  const tk = B.tradingkonto(d);
+  const delar = [];
+  const valjare = el('div', { class: 'knapprad' }, ...Object.entries(perioder).map(([k, [, namn]]) => {
+    const b = knapp(namn, () => { t.tradingPeriod = k; renderTrading(); }, 'knapp liten');
+    b.setAttribute('aria-pressed', String(k === t.tradingPeriod));
+    if (k === t.tradingPeriod) b.classList.add('primar');
+    return b;
+  }));
+  const pf = st.profitFaktor === Infinity ? '∞' : st.profitFaktor == null ? '–' : tal(st.profitFaktor, 2);
+  delar.push(kort(null,
+    el('div', { class: 'rad mellan' }, el('h2', { text: `Trading · ${periodNamn.toLowerCase()}` }), valjare),
+    el('div', { class: 'hjalte', style: 'margin:10px 0' }, el('span', { class: `varde ${klass(st.summa)}`, text: krTecken(st.summa) }),
+      el('span', { class: 'secondary', text: st.antal ? `${st.antal} affärer` : 'Inga affärer i perioden' })),
+    el('div', { class: 'rutor' },
+      ruta('Träffsäkerhet', proc(st.traffProc, 0), st.antal ? `${st.vinster} vinster av ${st.antal}` : ''),
+      ruta('Snitt per affär', krTecken(st.forvantat), 'förväntat resultat', klass(st.forvantat)),
+      ruta('Profit factor', pf, 'vinster delat med förluster'),
+      ruta('Snittvinst / snittförlust', `${st.snittVinst == null ? '–' : tal(st.snittVinst, 0)} / ${st.snittForlust == null ? '–' : tal(st.snittForlust, 0)}`, 'kronor'),
+      ruta('Största vinst', krTecken(st.storstaVinst), '', 'upp'),
+      ruta('Största förlust', krTecken(st.storstaForlust), '', 'ned'),
+      ruta('Största nedgång', kr(-st.maxNedgang), 'från topp till botten'),
+      ruta('Svit just nu', st.svit ? `${st.svit} ${st.svitTyp === 'vinst' ? (st.svit === 1 ? 'vinst' : 'vinster') : (st.svit === 1 ? 'förlust' : 'förluster')}` : '–', st.avkastningPaInsats != null ? `avkastning på insats ${procTecken(st.avkastningPaInsats)}` : '')),
+    el('div', { class: 'knapprad', style: 'margin-top:12px' },
+      knapp('Lägg till affär', () => affarFormular(), 'knapp primar'),
+      tk ? knapp('Insättning/uttag på tradingkontot', () => transaktionFormular(tk)) : knapp('Skapa tradingkonto', () => kontoFormular({ typ: 'trading', namn: 'Trading' })))));
+
+  // Från Guldbot utan belopp
+  const saknas = t.guldbotHistorik.filter((h) => h.id && !d.affarer.some((a) => a.posId === h.id));
+  if (saknas.length) {
+    delar.push(kort('Avslutade i Guldbot utan belopp',
+      el('p', { class: 'small secondary', style: 'margin-bottom:8px', text: 'De här affärerna är avslutade i Guldbot men saknar belopp i kronor. Lägg till insats och resultat, så räknas de med.' }),
+      ...saknas.slice(0, 10).map((h) => el('div', { class: 'post' },
+        el('h3', {}, el('span', { text: `${h.namn || h.instrument} · ${h.riktning === -1 ? 'kort' : 'lång'}` }), el('span', { class: `belopp ${klass(h.resultatProc)}`, text: h.resultatProc != null ? `${procTecken(h.resultatProc, 2)} på underliggande` : '' })),
+        el('div', { class: 'rad mellan' }, el('span', { class: 'small muted', text: `Såld ${datum(new Date(h.utT || h.inT).toISOString().slice(0, 10))}` }),
+          knapp('Lägg till belopp', () => affarFormular({ datum: new Date(h.utT || Date.now()).toISOString().slice(0, 10), instrument: h.namn || h.instrument, riktning: String(h.riktning || 1), posId: h.id, kalla: 'guldbot', insats: lager.hamta(`belopp.${h.id}`) || '' }), 'knapp liten'))))));
+  }
+
+  // Kurva och månader
+  if (st.kurva.length >= 2) {
+    const yta = el('div', { class: 'diagram' });
+    delar.push(kort('Resultatkurva', yta, el('p', { class: 'small muted', text: 'Summan av alla realiserade affärer över tid, efter avgifter.' })));
+    queueMicrotask(() => linjediagram(yta, {
+      serier: [{ namn: 'Resultat', kort: 'Resultat', farg: 'var(--series-1)', punkter: [[Date.parse(st.kurva[0].datum) - 86400000, 0], ...st.kurva.map((p, i) => [Date.parse(p.datum) + i, p.summa])] }],
+      xFormat: (x) => datumFmt.format(new Date(x)), yFormat: (x) => krTecken(x), yAxelFormat: (x) => tal(Math.abs(x) < 0.5 ? 0 : x, 0), tipsTitel: 'Resultatkurva', hojd: 220, nollLinje: true,
+    }));
+  }
+  if (d.affarer.length) {
+    const yta = el('div');
+    delar.push(kort('Resultat per månad', yta));
+    const forstaManad = B.manadNyckel([...d.affarer].map((a) => a.datum).sort()[0]);
+    const manader = B.senasteManader(12).filter((m) => m >= forstaManad);
+    stapeldiagram(yta, B.tradingPerManad(d.affarer, manader).map((m) => ({ etikett: manad(m.manad), varde: m.summa, tom: !m.antal })), { format: (x) => krTecken(x) });
+    const per = B.tradingPerInstrument(d.affarer.filter((a) => a.datum >= fran));
+    if (per.length) {
+      delar.push(kort('Per instrument', el('div', { class: 'tabellram' }, el('table', {},
+        el('tr', {}, ...['Instrument', 'Affärer', 'Träff', 'Resultat'].map((h) => el('th', { text: h }))),
+        ...per.map((p) => el('tr', {}, el('td', { text: p.instrument }), el('td', { text: p.antal }), el('td', { text: proc(p.traffProc, 0) }), el('td', { class: klass(p.summa), text: krTecken(p.summa) })))))));
+    }
+    const lista = [...d.affarer].sort((a, b) => b.datum.localeCompare(a.datum));
+    delar.push(kort('Alla affärer', el('div', { class: 'tabellram' }, el('table', {},
+      el('tr', {}, ...['Datum', 'Instrument', 'Riktning', 'Insats', 'Resultat', '', ''].map((h) => el('th', { text: h }))),
+      ...lista.slice(0, 100).map((a) => {
+        const net = (Number(a.resultat) || 0) - (Number(a.avgift) || 0);
+        return el('tr', {}, el('td', { text: datum(a.datum) }), el('td', { text: a.instrument || '–' }), el('td', { text: a.riktning === -1 || a.riktning === '-1' ? 'Kort' : 'Lång' }),
+          el('td', { text: a.insats ? kr(Number(a.insats)) : '–' }),
+          el('td', { class: klass(net), text: `${krTecken(net)}${a.insats ? ` (${procTecken((100 * net) / a.insats, 0)})` : ''}` }),
+          el('td', {}, knapp('Ändra', () => affarFormular(a), 'knapp liten')),
+          el('td', { class: 'small muted', text: a.kalla === 'guldbot' ? 'Guldbot' : '' }));
+      })))));
+  } else {
+    delar.push(kort('Affärer', tomRad('Inga affärer ännu. När du trycker "Jag har sålt" i Guldbot och fyller i beloppen hamnar affären här automatiskt. Du kan också lägga till affärer för hand.', knapp('Lägg till affär', () => affarFormular(), 'knapp primar'))));
+  }
+  v.replaceChildren(...delar);
+}
+
+// ---------- Sparande ----------
+function renderSparande() {
+  const v = $('vy-sparande');
+  const d = t.data;
+  const delar = [];
+  const totalt = d.konton.reduce((s, k) => { const u = B.kontoUtveckling(k, d); return { varde: s.varde + u.varde, insatt: s.insatt + u.insatt }; }, { varde: 0, insatt: 0 });
+  const avk = totalt.varde - totalt.insatt;
+  delar.push(kort(null,
+    el('div', { class: 'rad mellan' }, el('h2', { text: 'Sparande och konton' }), knapp('Lägg till konto', () => kontoFormular(), 'knapp primar')),
+    el('div', { class: 'rutor', style: 'margin-top:12px' },
+      ruta('Totalt värde', kr(totalt.varde)),
+      ruta('Insatt', kr(totalt.insatt), 'startvärden plus insättningar'),
+      ruta('Avkastning', krTecken(avk), totalt.insatt > 0 ? procTecken((100 * avk) / totalt.insatt) : '', klass(avk)),
+      ruta('Månadssparande', kr(B.planeratSparande(d)), 'enligt plan'))));
+  const typer = Object.keys(B.KONTOTYPER);
+  for (const typ of typer) {
+    const konton = d.konton.filter((k) => k.typ === typ);
+    if (!konton.length) continue;
+    delar.push(kort(B.KONTOTYPER[typ], ...konton.map((k) => {
+      const u = B.kontoUtveckling(k, d);
+      const historik = [
+        ...(k.varden || []).map((x) => ({ datum: x.datum, text: `Värde ${kr(Number(x.varde))}`, typ: 'v', id: x.datum })),
+        ...(k.transaktioner || []).map((x) => ({ datum: x.datum, text: `${x.belopp >= 0 ? 'Insättning' : 'Uttag'} ${kr(Math.abs(x.belopp))}${x.notering ? ` · ${x.notering}` : ''}`, typ: 't', id: x.id })),
+      ].sort((a, b) => b.datum.localeCompare(a.datum));
+      return el('div', { class: 'post' },
+        el('h3', {}, el('span', { text: k.namn }), el('span', { class: 'belopp', text: kr(u.varde) })),
+        fakta([
+          ['Avkastning', u.proc == null ? '–' : `${krTecken(u.avkastning)} (${procTecken(u.proc)})`, klass(u.avkastning)],
+          ['Insatt sedan start', kr(u.insatt)],
+          ['Månadssparande', k.manadssparande ? kr(k.manadssparande) : '–'],
+          ['Antagen avkastning', k.avkastning != null && k.avkastning !== '' ? `${proc(Number(k.avkastning))} per år` : '–'],
+        ]),
+        el('div', { class: 'knapprad' },
+          knapp('Uppdatera värde', () => vardeFormular(k), 'knapp liten'),
+          knapp('Insättning/uttag', () => transaktionFormular(k), 'knapp liten'),
+          knapp('Ändra konto', () => kontoFormular(k), 'knapp liten')),
+        historik.length ? el('details', {}, el('summary', { text: `Historik (${historik.length})` }),
+          el('div', { style: 'display:grid; gap:4px; margin-top:6px' }, ...historik.slice(0, 40).map((h) => el('div', { class: 'rad mellan small' },
+            el('span', { text: `${datum(h.datum)} · ${h.text}` }),
+            knapp('Ta bort', () => andra((dd) => {
+              const kk = dd.konton.find((x) => x.id === k.id);
+              if (h.typ === 'v') kk.varden = kk.varden.filter((x) => x.datum !== h.id); else kk.transaktioner = kk.transaktioner.filter((x) => x.id !== h.id);
+            }, { meddelande: 'Borttaget.', angraBar: true }), 'knapp liten fara'))))) : null);
+    })));
+  }
+  if (!d.konton.length) delar.push(kort('Inga konton ännu', tomRad('Lägg till dina konton med dagens värde. Uppdatera värdet då och då och registrera insättningar, så räknas avkastningen ut.', knapp('Lägg till konto', () => kontoFormular(), 'knapp primar'))));
+  v.replaceChildren(...delar);
+}
+
+// ---------- Budget ----------
+function renderBudget() {
+  const v = $('vy-budget');
+  const d = t.data;
+  const m = t.budgetManad;
+  const b = B.budgetSammanfattning(d, m);
+  const utfall = d.budget.utfall[m] || {};
+  const delar = [];
+  const byt = (steg) => { t.budgetManad = B.laggTillManader(`${m}-01`, steg).slice(0, 7); renderBudget(); };
+  const segment = [
+    { namn: 'Utgifter', varde: b.utgifterUtfall, farg: 'var(--series-2)' },
+    { namn: 'Sparande', varde: b.sparande, farg: 'var(--series-1)' },
+    { namn: 'Avsättningar', varde: b.avsattningar, farg: 'var(--series-3)' },
+    { namn: 'Kvar', varde: Math.max(0, b.kvar), farg: 'var(--axis)' },
+  ];
+  const summa = segment.reduce((s, x) => s + x.varde, 0) || 1;
+  const fordelning = el('div', { class: 'fordelning', role: 'img', 'aria-label': segment.map((s) => `${s.namn} ${kr(s.varde)}`).join(', ') },
+    ...segment.filter((s) => s.varde > 0).map((s) => { const x = el('span', { title: `${s.namn}: ${kr(s.varde)}` }); x.style.width = `${(100 * s.varde) / summa}%`; x.style.background = s.farg; return x; }));
+  delar.push(kort(null,
+    el('div', { class: 'rad mellan' }, el('h2', { text: `Budget · ${manadLang(m)}` }),
+      el('div', { class: 'knapprad' }, knapp('←', () => byt(-1), 'knapp liten'), knapp('Denna månad', () => { t.budgetManad = B.manadNyckel(B.idag()); renderBudget(); }, 'knapp liten'), knapp('→', () => byt(1), 'knapp liten'))),
+    el('div', { class: 'rutor', style: 'margin:12px 0' },
+      ruta('Inkomster', kr(b.inkomster)),
+      ruta('Utgifter', kr(b.utgifterUtfall), b.utgifterUtfall !== b.utgifterPlan ? `plan ${kr(b.utgifterPlan)}` : 'enligt plan'),
+      ruta('Sparande + avsättningar', kr(b.sparande + b.avsattningar), b.sparkvot != null ? `sparkvot ${proc(b.sparkvot, 0)}` : ''),
+      ruta('Kvar', kr(b.kvar), b.kvar < 0 ? 'Budgeten går inte ihop' : 'att spendera eller spara mer', b.kvar < 0 ? 'ned' : '')),
+    b.inkomster ? fordelning : null,
+    b.inkomster ? el('div', { class: 'legend', style: 'margin-top:8px' }, ...segment.map((s) => { const i = el('i', { class: 'ruta-ikon' }); i.style.background = s.farg; return el('span', {}, i, `${s.namn} ${kr(s.varde)}`); })) : null));
+
+  const radLista = (rubrik, lista, typ, medUtfall) => {
+    const rader = lista.map((x) => {
+      const namnKnapp = el('button', { type: 'button', class: 'budgetnamn', title: 'Ändra' }, x.namn,
+        x.kategori && x.kategori !== x.namn ? el('small', { text: x.kategori }) : null);
+      namnKnapp.addEventListener('click', () => budgetFormular(typ, x));
+      const celler = [namnKnapp, el('span', { class: 'budgetplan', text: kr(Number(x.belopp)) })];
+      if (medUtfall) {
+        const inp = el('input', { inputmode: 'decimal', value: utfall[x.id] != null ? String(utfall[x.id]) : '', placeholder: tal(Number(x.belopp), 0), 'aria-label': `Utfall ${x.namn}` });
+        inp.addEventListener('change', () => andra((dd) => {
+          const u = dd.budget.utfall[m] || (dd.budget.utfall[m] = {});
+          const n = tolkaTal(inp.value);
+          if (n == null) delete u[x.id]; else u[x.id] = n;
+        }));
+        const diff = utfall[x.id] != null ? Number(x.belopp) - utfall[x.id] : null;
+        celler.push(el('span', { class: 'budgetutfall' }, inp, el('small', { class: diff == null ? 'muted' : klass(diff), text: diff == null ? '' : `${krTecken(diff)} mot plan` })));
+      }
+      return el('div', { class: `budgetrad${medUtfall ? ' med-utfall' : ''}` }, ...celler);
+    });
+    const huvud = el('div', { class: `budgetrad huvud${medUtfall ? ' med-utfall' : ''}` }, el('span', { text: typ === 'inkomster' ? 'Inkomst' : 'Utgift' }), el('span', { class: 'budgetplan', text: 'Plan / mån' }), medUtfall ? el('span', { class: 'budgetutfall', text: 'Utfall' }) : null);
+    return kort(null, el('div', { class: 'rad mellan', style: 'margin-bottom:8px' }, el('h2', { text: rubrik }), knapp(typ === 'inkomster' ? 'Lägg till inkomst' : 'Lägg till utgift', () => budgetFormular(typ), 'knapp liten')),
+      lista.length ? el('div', { class: 'budgetlista' }, huvud, ...rader) : el('p', { class: 'small muted', text: typ === 'inkomster' ? 'Lägg till lön, CSN, bidrag och annat som kommer in varje månad.' : 'Lägg till hyra, mat, transporter, abonnemang och andra utgifter.' }),
+      lista.length ? el('p', { class: 'small muted', style: 'margin-top:6px', text: medUtfall ? 'Tryck på en rad för att ändra den. Fyll i utfall när du vet vad det faktiskt blev – tom ruta räknas som planen.' : 'Tryck på en rad för att ändra den.' }) : null);
+  };
+  delar.push(radLista('Inkomster', d.budget.inkomster, 'inkomster', false));
+  delar.push(radLista('Utgifter', d.budget.utgifter, 'utgifter', true));
+
+  // Sparande den här månaden
+  const sparkonton = d.konton.filter((k) => Number(k.manadssparande) > 0);
+  if (sparkonton.length) {
+    const rader = sparkonton.map((k) => {
+      const gjort = (k.transaktioner || []).filter((x) => B.manadNyckel(x.datum) === m).reduce((s, x) => s + Number(x.belopp), 0);
+      return el('tr', {}, el('td', { text: k.namn }), el('td', { text: kr(Number(k.manadssparande)) }), el('td', { class: gjort >= k.manadssparande ? 'upp' : '', text: kr(gjort) }));
+    });
+    const ejGjort = sparkonton.filter((k) => (k.transaktioner || []).filter((x) => B.manadNyckel(x.datum) === m).reduce((s, x) => s + Number(x.belopp), 0) < Number(k.manadssparande));
+    delar.push(kort('Månadens sparande',
+      el('div', { class: 'tabellram' }, el('table', {}, el('tr', {}, ...['Konto', 'Plan', 'Insatt'].map((h) => el('th', { text: h }))), ...rader)),
+      ejGjort.length ? el('div', { class: 'knapprad', style: 'margin-top:10px' }, knapp(`Registrera månadens sparande (${kr(ejGjort.reduce((s, k) => s + Number(k.manadssparande), 0))})`, () => andra((dd) => {
+        const dag = m === B.manadNyckel(B.idag()) ? B.idag() : B.manadSlut(m);
+        for (const k of ejGjort) dd.konton.find((x) => x.id === k.id).transaktioner.push({ id: nyttId('t'), datum: dag, belopp: Number(k.manadssparande), notering: 'Månadssparande' });
+      }, { meddelande: 'Månadens sparande registrerat.', angraBar: true }), 'knapp primar')) : el('p', { class: 'small upp', style: 'margin-top:8px', text: 'Allt planerat sparande är insatt den här månaden.' })));
+  }
+  if (b.avsattningar > 0) {
+    delar.push(kort('Avsättningar till framtida utgifter', el('p', { class: 'secondary', text: `${kr(b.avsattningar)} per månad behöver läggas undan för de kommande utgifterna. Se fliken Framtida utgifter.` })));
+  }
+  v.replaceChildren(...delar);
+}
+
+// ---------- Mål och kalkylator ----------
+function renderMal() {
+  const v = $('vy-mal');
+  const d = t.data;
+  const delar = [];
+  delar.push(kort(null, el('div', { class: 'rad mellan', style: 'margin-bottom:6px' }, el('h2', { text: 'Mål' }), knapp('Lägg till mål', () => malFormular(), 'knapp primar')),
+    ...(d.mal.length ? d.mal.map((mal) => {
+      const p = B.malPrognos(mal, d);
+      const status = p.iFas
+        ? `I fas: med ${kr(p.manadssparande)}/mån och ${proc(p.avkastning)} avkastning når du ${kr(mal.belopp)} redan ${datum(p.nasDatum)}.`
+        : `Inte i fas: prognosen är ${kr(p.prognos)} (${tal(100 * p.prognosAndel, 0)} %) ${datum(mal.datum)}.`;
+      return el('div', { class: 'post' },
+        el('h3', {}, el('span', { text: `${mal.namn} · ${datum(mal.datum)}` }), el('span', { class: 'belopp', text: `${kr(p.nuvarande)} av ${kr(mal.belopp)}` })),
+        malStapel(p.andelNu, p.prognosAndel),
+        el('p', { class: `small ${p.iFas ? 'upp' : 'secondary'}`, text: status }),
+        p.iFas ? null : fakta([
+          ['Spara per månad', `${kr(p.kravSpar)} (nu ${kr(p.manadssparande)})`],
+          ['eller avkastning per år', p.kravAvk == null ? 'över 200 % – inte realistiskt' : `${proc(p.kravAvk)} (antaget ${proc(p.avkastning)})`],
+          ['Nås i nuvarande takt', p.nasDatum ? datum(p.nasDatum) : 'inte inom 100 år'],
+        ]),
+        el('div', { class: 'knapprad' }, knapp('Ändra', () => malFormular(mal), 'knapp liten'), knapp('Räkna på målet', () => {
+          Object.assign(t.kalkyl, { start: Math.round(p.nuvarande), spar: Math.round(p.manadssparande), avk: Number(tal(p.avkastning, 1).replace(',', '.')), ar: Number(tal(Math.max(0.5, p.manader / 12), 1).replace(',', '.')), mal: mal.belopp });
+          renderMal();
+          $('kalkylatorn').scrollIntoView({ behavior: 'smooth' });
+        }, 'knapp liten')));
+    }) : [el('p', { class: 'secondary', text: 'Sätt ett mål, till exempel en kontantinsats, en resa eller 1 miljon till 2035. Koppla det till ett eller flera konton så räknas framstegen automatiskt.' })])));
+  delar.push(kalkylator());
+  v.replaceChildren(...delar);
+  ritaKalkyl();
+}
+
+function kalkylator() {
+  const k = t.kalkyl;
+  const falt = (id, etikett, varde, hjalp = '') => el('label', { class: 'falt' }, etikett, el('input', { id, inputmode: 'decimal', value: String(varde) }), hjalp ? el('span', { class: 'small muted', text: hjalp }) : null);
+  const vanster = el('div', { style: 'display:grid; gap:10px' },
+    falt('kStart', 'Startbelopp (kr)', k.start),
+    falt('kSpar', 'Sparande per månad (kr)', k.spar),
+    falt('kAvk', 'Avkastning per år (%)', k.avk),
+    el('div', { class: 'forval' }, ...[['Försiktigt 4 %', 4], ['Index 7 %', 7], ['Hög risk 12 %', 12]].map(([n, a]) => { const b = el('button', { type: 'button' }, n); b.addEventListener('click', () => { $('kAvk').value = a; lasKalkyl(); }); return b; })),
+    falt('kAr', 'Tid (år)', k.ar),
+    falt('kMal', 'Målbelopp (valfritt, kr)', k.mal, 'Fyll i för att se vad som krävs.'));
+  const hoger = el('div', { style: 'display:grid; gap:8px; align-content:start' },
+    el('div', { class: 'small secondary', id: 'kRubrik' }), el('div', { class: 'resultat', id: 'kResultat' }), el('div', { class: 'small secondary', id: 'kDelning' }),
+    el('div', { id: 'kKrav', class: 'motivation' }), el('div', { class: 'legend', id: 'kLegend' }), el('div', { class: 'diagram', id: 'kDiagram' }));
+  const c = kort('Kalkylator: ränta på ränta', el('div', { class: 'kalkyl' }, vanster, hoger));
+  c.id = 'kalkylatorn';
+  c.addEventListener('input', (e) => { if (e.target.matches('input')) lasKalkyl(); });
+  return c;
+}
+
+function lasKalkyl() {
+  const k = t.kalkyl;
+  k.start = tolkaTal($('kStart').value) ?? 0;
+  k.spar = tolkaTal($('kSpar').value) ?? 0;
+  k.avk = tolkaTal($('kAvk').value) ?? 0;
+  k.ar = Math.min(80, Math.max(0, tolkaTal($('kAr').value) ?? 0));
+  k.mal = tolkaTal($('kMal').value) ?? '';
+  ritaKalkyl();
+}
+
+function ritaKalkyl() {
+  const k = t.kalkyl;
+  const manader = Math.round(k.ar * 12);
+  const serie = B.sparserie(k.start, k.spar, k.avk, manader);
+  const slut = serie.at(-1);
+  $('kRubrik').textContent = `Om ${tal(k.ar, k.ar % 1 ? 1 : 0)} år har du`;
+  $('kResultat').textContent = kr(slut.varde);
+  $('kDelning').textContent = `varav ${kr(slut.insatt)} insatt och ${kr(slut.varde - slut.insatt)} i avkastning`;
+  const krav = $('kKrav');
+  krav.replaceChildren();
+  if (k.mal) {
+    const b = (x) => el('b', { text: x });
+    if (slut.varde >= k.mal) {
+      const n = B.manaderTill(k.mal, k.start, k.spar, k.avk);
+      krav.append(el('p', {}, 'Du når ', b(kr(k.mal)), ' efter ', b(n < 12 ? `${n} månader` : `${tal(n / 12, 1)} år`), '.'));
+    } else {
+      const sparKrav = B.kravManadsspar(k.mal, k.start, k.avk, manader);
+      const avkKrav = B.kravAvkastning(k.mal, k.start, k.spar, manader);
+      const n = B.manaderTill(k.mal, k.start, k.spar, k.avk);
+      krav.append(el('p', {}, `För att nå ${kr(k.mal)} på ${tal(k.ar, k.ar % 1 ? 1 : 0)} år behöver du:`));
+      krav.append(el('p', {}, '• spara ', b(`${kr(sparKrav)}/mån`), ` med ${proc(k.avk)} avkastning,`));
+      krav.append(el('p', {}, '• eller få ', b(avkKrav == null ? 'över 200 %' : `${proc(avkKrav)} per år`), ` med ${kr(k.spar)}/mån,`));
+      krav.append(el('p', {}, '• eller vänta ', b(n == null ? 'över 100 år' : `${tal(n / 12, 1)} år`), ' med nuvarande upplägg.'));
+    }
+  }
+  const serier = [
+    { namn: 'Värde', kort: 'Värde', farg: 'var(--series-1)', punkter: serie.map((p) => [p.manad, p.varde]) },
+    { namn: 'Insatt', kort: 'Insatt', farg: 'var(--series-2)', punkter: serie.map((p) => [p.manad, p.insatt]) },
+  ];
+  legend($('kLegend'), serier.map((s) => ({ namn: s.namn, farg: s.farg })));
+  linjediagram($('kDiagram'), {
+    serier, xFormat: (x) => (x < 12 ? `${Math.round(x)} mån` : `år ${tal(x / 12, x % 12 ? 1 : 0)}`), yFormat: (x) => kr(x),
+    yAxelFormat: (x) => (x >= 1e6 ? `${tal(x / 1e6, 1)} mkr` : `${tal(x / 1000, 0)} tkr`), tipsTitel: 'Sparande över tid',
+    refLinjer: k.mal ? [{ y: k.mal, etikett: 'Mål' }] : [], hojd: 220,
+  });
+}
+
+// ---------- Framtida utgifter ----------
+function renderUtgifter() {
+  const v = $('vy-utgifter');
+  const plan = B.utgiftsplan(t.data.utgifter);
+  const perManad = plan.reduce((s, u) => s + u.perManad, 0);
+  const delar = [kort(null,
+    el('div', { class: 'rad mellan' }, el('h2', { text: 'Framtida utgifter' }), knapp('Lägg till utgift', () => utgiftFormular(), 'knapp primar')),
+    el('div', { class: 'rutor', style: 'margin-top:12px' },
+      ruta('Lägg undan per månad', kr(perManad), 'för att ha råd i tid'),
+      ruta('Kvar att spara', kr(plan.reduce((s, u) => s + u.kvar, 0)), `${plan.filter((u) => u.kvar > 0).length} utgifter`),
+      ruta('Nästa', plan.find((u) => !u.passerad)?.namn || '–', plan.find((u) => !u.passerad) ? datum(plan.find((u) => !u.passerad).nastaDatum) : '')))];
+  if (plan.length) {
+    delar.push(kort(null, ...plan.map((u) => el('div', { class: 'post' },
+      el('h3', {}, el('span', { text: `${u.namn}${u.aterkommande === 'ar' ? ' · varje år' : ''}` }), el('span', { class: 'belopp', text: kr(Number(u.belopp)) })),
+      malStapel(u.andel),
+      el('p', { class: `small ${u.passerad ? 'muted' : u.kvar > 0 ? 'secondary' : 'upp'}`, text: u.passerad ? `Datumet ${datum(u.nastaDatum)} har passerat.` : u.kvar > 0 ? `${datum(u.nastaDatum)} (${tidRelativ(u.nastaDatum)}) · sparat ${kr(Number(u.sparat) || 0)} · lägg undan ${kr(u.perManad)}/mån` : `${datum(u.nastaDatum)} · fullt sparat` }),
+      el('div', { class: 'knapprad' },
+        u.kvar > 0 ? knapp(`Lägg undan ${kr(Math.round(u.perManad))}`, () => andra((dd) => { const x = dd.utgifter.find((y) => y.id === u.id); x.sparat = (Number(x.sparat) || 0) + Math.round(u.perManad); }, { meddelande: `${kr(Math.round(u.perManad))} undanlagt till ${u.namn}.`, angraBar: true }), 'knapp liten') : null,
+        knapp('Ändra', () => utgiftFormular(u), 'knapp liten'))))));
+  } else {
+    delar.push(kort(null, tomRad('Lägg in större utgifter som kommer: försäkringar, resor, körkort, en ny dator eller en flytt. Sidan räknar ut hur mycket du behöver lägga undan varje månad.')));
+  }
+  v.replaceChildren(...delar);
+}
+
+// ---------- Lagring ----------
+function renderLagring() {
+  const v = $('vy-lagring');
+  const delar = [];
+  let text, knappar = [];
+  if (!gh.aktiv()) {
+    text = 'Uppgifterna sparas bara i den här webbläsaren. Lägg in din GitHub-nyckel på marknadssidan (Inställningar) för att kunna synka krypterat mellan dina enheter.';
+    knappar.push(el('a', { class: 'knapp', href: 'index.html', style: 'text-decoration:none; display:inline-flex; align-items:center' }, 'Till marknadssidan'));
+  } else if (t.lage === 'kan-synka') {
+    text = 'Uppgifterna sparas bara i den här webbläsaren. Slå på synk för att spara dem krypterat i ditt repo och komma åt dem från alla enheter.';
+    knappar.push(knapp('Slå på krypterad synk', synkFormular, 'knapp primar'));
+  } else if (t.lage === 'synk') {
+    text = 'Uppgifterna sparas krypterat i ditt repo (docs/data/ekonomi.krypterad.json) och synkas mellan dina enheter. Utan lösenfrasen går filen inte att läsa.';
+    knappar.push(knapp('Byt lösenfras', synkFormular), knapp('Lås på den här enheten', () => { lokal.glomLosen(); lokal.rensa(); t.losen = ''; t.data = tomEkonomi(); visaLast(); }));
+  } else {
+    text = 'Låst. Ange lösenfrasen överst på sidan.';
+  }
+  delar.push(kort('Lagring och synk', el('p', { class: 'secondary', text }), el('div', { class: 'knapprad', style: 'margin-top:10px' }, ...knappar),
+    el('p', { class: 'small muted', style: 'margin-top:10px', text: 'Glömmer du lösenfrasen går den krypterade filen inte att öppna. Ladda ner en säkerhetskopia då och då.' })));
+  const fil = el('input', { type: 'file', accept: 'application/json,.json', hidden: true });
+  fil.addEventListener('change', async () => {
+    const f = fil.files[0];
+    if (!f) return;
+    try {
+      const d = normalisera(JSON.parse(await f.text()));
+      if (await bekrafta(`Ersätta allt med säkerhetskopian (${d.konton.length} konton, ${d.affarer.length} affärer)?`, 'Ersätt')) andra((dd) => Object.assign(dd, d), { meddelande: 'Säkerhetskopian är inläst.', angraBar: true });
+    } catch { visaMeddelande('Filen kunde inte läsas som en säkerhetskopia.', 'fel'); }
+  });
+  delar.push(kort('Säkerhetskopia',
+    el('p', { class: 'secondary', text: 'Kopian är en vanlig JSON-fil och inte krypterad. Spara den på ett säkert ställe.' }),
+    el('div', { class: 'knapprad', style: 'margin-top:10px' },
+      knapp('Ladda ner säkerhetskopia', () => {
+        const url = URL.createObjectURL(new Blob([JSON.stringify(t.data, null, 1)], { type: 'application/json' }));
+        const a = el('a', { href: url, download: `guldbot-ekonomi-${B.idag()}.json` });
+        document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }),
+      knapp('Läs in säkerhetskopia', () => fil.click()), fil)));
+  delar.push(kort('Exempeldata och rensning', el('div', { class: 'knapprad' },
+    knapp('Fyll i exempeldata', fyllExempel),
+    knapp('Rensa allt', async () => { if (await bekrafta('Ta bort alla konton, affärer, budget, mål och utgifter?', 'Rensa allt')) andra((dd) => Object.assign(dd, tomEkonomi()), { meddelande: 'Allt är rensat.', angraBar: true }); }, 'knapp fara'))));
+  v.replaceChildren(...delar);
+}
+
+// ---------- Formulär ----------
+// falt: [{ id, etikett, typ: 'text'|'tal'|'datum'|'val'|'kryss'|'flerval', val: [[varde, text]], krav, hjalp, halv }]
+function formular({ titel, falt, varden = {}, spara, tabort = null, text = null }) {
+  const form = $('formularForm');
+  const kontroller = {};
+  const rader = [];
+  let par = null;
+  for (const f of falt) {
+    let inp;
+    const v = varden[f.id] ?? f.std ?? '';
+    if (f.typ === 'val') {
+      inp = el('select', { id: `f-${f.id}` }, ...f.val.map(([vv, tt]) => el('option', { value: vv, selected: String(vv) === String(v) ? '' : null }, tt)));
+    } else if (f.typ === 'kryss') {
+      inp = el('input', { type: 'checkbox', id: `f-${f.id}`, checked: v ? '' : null });
+    } else if (f.typ === 'flerval') {
+      inp = el('div', { style: 'display:grid; gap:6px' }, ...f.val.map(([vv, tt]) => el('label', { class: 'kryss' }, el('input', { type: 'checkbox', value: vv, checked: (v || []).includes(vv) ? '' : null }), tt)));
+    } else {
+      inp = el('input', { id: `f-${f.id}`, type: f.typ === 'datum' ? 'date' : 'text', inputmode: f.typ === 'tal' ? 'decimal' : null, value: v === null ? '' : String(v), required: f.krav ? '' : null, placeholder: f.platshallare || null });
+    }
+    kontroller[f.id] = { f, inp };
+    const label = f.typ === 'kryss' ? el('label', { class: 'kryss' }, inp, f.etikett) : el('label', {}, f.etikett, inp, f.hjalp ? el('span', { class: 'small muted', text: f.hjalp }) : null);
+    if (f.halv) {
+      if (par) { par.append(label); rader.push(par); par = null; } else par = el('div', { class: 'tva' }, label);
+    } else {
+      if (par) { rader.push(par); par = null; }
+      rader.push(label);
+    }
+  }
+  if (par) rader.push(par);
+  const fel = el('p', { class: 'small ned', hidden: true });
+  const knappar = el('div', { class: 'rad', style: 'justify-content:space-between' },
+    tabort ? el('button', { type: 'button', class: 'knapp fara', id: 'fTabort' }, 'Ta bort') : el('span'),
+    el('div', { class: 'rad' }, el('button', { type: 'button', class: 'knapp', id: 'fAvbryt' }, 'Avbryt'), el('button', { type: 'submit', class: 'knapp primar' }, 'Spara')));
+  form.replaceChildren(el('h2', { text: titel }), text ? el('p', { class: 'small secondary', text }) : null, ...rader, fel, knappar);
+  const dlg = $('formular');
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const ut = {};
+    for (const [id, { f, inp }] of Object.entries(kontroller)) {
+      if (f.typ === 'tal') ut[id] = tolkaTal(inp.value);
+      else if (f.typ === 'kryss') ut[id] = inp.checked;
+      else if (f.typ === 'flerval') ut[id] = [...inp.querySelectorAll('input:checked')].map((x) => x.value);
+      else ut[id] = inp.value.trim();
+      if (f.krav && (ut[id] == null || ut[id] === '')) { fel.hidden = false; fel.textContent = `Fyll i ${f.etikett.toLowerCase()}.`; inp.focus(); return; }
+    }
+    const svar = spara(ut);
+    if (typeof svar === 'string') { fel.hidden = false; fel.textContent = svar; return; }
+    dlg.close();
+  };
+  form.querySelector('#fAvbryt').onclick = () => dlg.close();
+  if (tabort) form.querySelector('#fTabort').onclick = () => { tabort(); dlg.close(); };
+  dlg.showModal();
+}
+
+function bekrafta(text, knapptext = 'OK') {
+  return new Promise((klar) => {
+    const form = $('formularForm');
+    form.replaceChildren(el('h2', { text: 'Är du säker?' }), el('p', { class: 'secondary', text }),
+      el('div', { class: 'rad', style: 'justify-content:flex-end' }, el('button', { type: 'button', class: 'knapp', id: 'bNej' }, 'Avbryt'), el('button', { type: 'submit', class: 'knapp primar' }, knapptext)));
+    const dlg = $('formular');
+    form.onsubmit = (e) => { e.preventDefault(); dlg.close(); klar(true); };
+    form.querySelector('#bNej').onclick = () => { dlg.close(); klar(false); };
+    dlg.showModal();
+  });
+}
+
+const typVal = Object.entries(B.KONTOTYPER);
+function kontoFormular(k = null) {
+  const ny = !k?.id;
+  formular({
+    titel: ny ? 'Lägg till konto' : `Ändra ${k.namn}`,
+    falt: [
+      { id: 'namn', etikett: 'Namn', typ: 'text', krav: true, platshallare: 't.ex. ISK Avanza' },
+      { id: 'typ', etikett: 'Typ', typ: 'val', val: typVal, std: 'langsiktigt' },
+      ...(ny ? [{ id: 'varde', etikett: 'Värde idag (kr)', typ: 'tal', krav: true, halv: true }, { id: 'datum', etikett: 'Datum', typ: 'datum', std: B.idag(), halv: true }] : []),
+      { id: 'manadssparande', etikett: 'Månadssparande (kr)', typ: 'tal', halv: true },
+      { id: 'avkastning', etikett: 'Antagen avkastning (% per år)', typ: 'tal', halv: true, hjalp: 'För prognoser, t.ex. 7 för en indexfond.' },
+    ],
+    varden: { ...k },
+    text: ny ? 'Tradingkontot får automatiskt in resultatet från dina affärer.' : null,
+    spara: (v) => {
+      if (v.typ === 'trading' && t.data.konton.some((x) => x.typ === 'trading' && x.id !== k?.id)) return 'Det finns redan ett tradingkonto. Använd typen Annat för fler.';
+      andra((d) => {
+        if (ny) d.konton.push({ id: nyttId('k'), namn: v.namn, typ: v.typ, manadssparande: v.manadssparande || 0, avkastning: v.avkastning, varden: [{ datum: v.datum || B.idag(), varde: v.varde }], transaktioner: [] });
+        else Object.assign(d.konton.find((x) => x.id === k.id), { namn: v.namn, typ: v.typ, manadssparande: v.manadssparande || 0, avkastning: v.avkastning });
+      }, { meddelande: ny ? `${v.namn} är tillagt.` : 'Sparat.' });
+    },
+    tabort: ny ? null : async () => { if (await bekrafta(`Ta bort ${k.namn} med all historik?`, 'Ta bort')) andra((d) => { d.konton = d.konton.filter((x) => x.id !== k.id); d.mal.forEach((m) => { m.kontoIds = (m.kontoIds || []).filter((id) => id !== k.id); }); }, { meddelande: `${k.namn} är borttaget.`, angraBar: true }); },
+  });
+}
+
+function vardeFormular(k) {
+  formular({
+    titel: `Uppdatera värde: ${k.namn}`,
+    text: 'Skriv in vad kontot är värt enligt banken. Insättningar och resultat efter det datumet räknas på automatiskt.',
+    falt: [{ id: 'varde', etikett: 'Värde (kr)', typ: 'tal', krav: true, halv: true }, { id: 'datum', etikett: 'Datum', typ: 'datum', std: B.idag(), halv: true }],
+    varden: { varde: Math.round(B.kontoVarde(k, t.data)) },
+    spara: (v) => andra((d) => { const kk = d.konton.find((x) => x.id === k.id); kk.varden = kk.varden.filter((x) => x.datum !== v.datum); kk.varden.push({ datum: v.datum, varde: v.varde }); }, { meddelande: 'Värdet är uppdaterat.', angraBar: true }),
+  });
+}
+
+function transaktionFormular(k) {
+  formular({
+    titel: `Insättning eller uttag: ${k.namn}`,
+    falt: [
+      { id: 'riktning', etikett: 'Typ', typ: 'val', val: [['in', 'Insättning'], ['ut', 'Uttag']], std: 'in' },
+      { id: 'belopp', etikett: 'Belopp (kr)', typ: 'tal', krav: true, halv: true }, { id: 'datum', etikett: 'Datum', typ: 'datum', std: B.idag(), halv: true },
+      { id: 'notering', etikett: 'Notering (valfri)', typ: 'text' },
+    ],
+    varden: { belopp: k.manadssparande || '' },
+    spara: (v) => andra((d) => d.konton.find((x) => x.id === k.id).transaktioner.push({ id: nyttId('t'), datum: v.datum, belopp: (v.riktning === 'ut' ? -1 : 1) * Math.abs(v.belopp), notering: v.notering }), { meddelande: 'Registrerat.', angraBar: true }),
+  });
+}
+
+function affarFormular(a = {}) {
+  const ny = !a.id;
+  formular({
+    titel: ny ? 'Lägg till affär' : 'Ändra affär',
+    text: 'Resultat är vad du fick tillbaka minus insatsen, i kronor (negativt vid förlust).',
+    falt: [
+      { id: 'instrument', etikett: 'Instrument', typ: 'text', krav: true, platshallare: 't.ex. Guld', halv: true },
+      { id: 'riktning', etikett: 'Riktning', typ: 'val', val: [['1', 'Lång'], ['-1', 'Kort']], std: '1', halv: true },
+      { id: 'insats', etikett: 'Insats (kr)', typ: 'tal', halv: true },
+      { id: 'resultat', etikett: 'Resultat (kr)', typ: 'tal', krav: true, halv: true, platshallare: 't.ex. 450 eller −300' },
+      { id: 'avgift', etikett: 'Courtage/avgift (kr, valfri)', typ: 'tal', halv: true },
+      { id: 'datum', etikett: 'Datum (såld)', typ: 'datum', std: B.idag(), halv: true },
+      { id: 'anteckning', etikett: 'Anteckning (valfri)', typ: 'text', platshallare: 'Vad gick bra eller dåligt?' },
+    ],
+    varden: { ...a, riktning: a.riktning != null ? String(a.riktning) : '1' },
+    spara: (v) => andra((d) => {
+      const rad = { instrument: v.instrument, riktning: Number(v.riktning), insats: v.insats, resultat: v.resultat, avgift: v.avgift, datum: v.datum, anteckning: v.anteckning };
+      if (ny) d.affarer.push({ id: nyttId('a'), kalla: a.kalla || 'manuell', posId: a.posId, ...rad });
+      else Object.assign(d.affarer.find((x) => x.id === a.id), rad);
+    }, { meddelande: ny ? 'Affären är tillagd.' : 'Sparat.' }),
+    tabort: ny ? null : () => andra((d) => { d.affarer = d.affarer.filter((x) => x.id !== a.id); }, { meddelande: 'Affären är borttagen.', angraBar: true }),
+  });
+}
+
+function budgetFormular(typ, x = null) {
+  const ny = !x;
+  formular({
+    titel: `${ny ? 'Lägg till' : 'Ändra'} ${typ === 'inkomster' ? 'inkomst' : 'utgift'}`,
+    falt: [
+      { id: 'namn', etikett: 'Namn', typ: 'text', krav: true, platshallare: typ === 'inkomster' ? 't.ex. Lön' : 't.ex. Hyra' },
+      { id: 'belopp', etikett: 'Belopp per månad (kr)', typ: 'tal', krav: true, halv: typ === 'utgifter' },
+      ...(typ === 'utgifter' ? [{ id: 'kategori', etikett: 'Kategori (valfri)', typ: 'text', halv: true, platshallare: 't.ex. Boende' }] : []),
+    ],
+    varden: { ...x },
+    spara: (v) => andra((d) => { const lista = d.budget[typ]; if (ny) lista.push({ id: nyttId('b'), ...v }); else Object.assign(lista.find((y) => y.id === x.id), v); }, { meddelande: 'Sparat.' }),
+    tabort: ny ? null : () => andra((d) => { d.budget[typ] = d.budget[typ].filter((y) => y.id !== x.id); }, { meddelande: 'Borttaget.', angraBar: true }),
+  });
+}
+
+function malFormular(m = null) {
+  const ny = !m;
+  formular({
+    titel: ny ? 'Lägg till mål' : `Ändra ${m.namn}`,
+    falt: [
+      { id: 'namn', etikett: 'Namn', typ: 'text', krav: true, platshallare: 't.ex. Kontantinsats' },
+      { id: 'belopp', etikett: 'Belopp (kr)', typ: 'tal', krav: true, halv: true }, { id: 'datum', etikett: 'Datum', typ: 'datum', krav: true, halv: true, std: B.laggTillManader(B.idag(), 36) },
+      ...(t.data.konton.length ? [{ id: 'kontoIds', etikett: 'Konton som sparar till målet', typ: 'flerval', val: t.data.konton.map((k) => [k.id, k.namn]) }] : []),
+      { id: 'sparat', etikett: 'Redan sparat (kr) – om inget konto är valt', typ: 'tal', halv: true },
+      { id: 'manadssparande', etikett: 'Sparande per månad (kr, valfritt)', typ: 'tal', halv: true, hjalp: 'Tomt = kontonas månadssparande.' },
+      { id: 'avkastning', etikett: 'Avkastning (% per år, valfritt)', typ: 'tal', hjalp: 'Tomt = kontonas antagna avkastning.' },
+    ],
+    varden: { ...m },
+    spara: (v) => andra((d) => { if (ny) d.mal.push({ id: nyttId('m'), ...v }); else Object.assign(d.mal.find((x) => x.id === m.id), v); }, { meddelande: 'Sparat.' }),
+    tabort: ny ? null : () => andra((d) => { d.mal = d.mal.filter((x) => x.id !== m.id); }, { meddelande: 'Målet är borttaget.', angraBar: true }),
+  });
+}
+
+function utgiftFormular(u = null) {
+  const ny = !u;
+  formular({
+    titel: ny ? 'Lägg till framtida utgift' : `Ändra ${u.namn}`,
+    falt: [
+      { id: 'namn', etikett: 'Namn', typ: 'text', krav: true, platshallare: 't.ex. Bilförsäkring' },
+      { id: 'belopp', etikett: 'Belopp (kr)', typ: 'tal', krav: true, halv: true }, { id: 'datum', etikett: 'Datum', typ: 'datum', krav: true, halv: true, std: B.laggTillManader(B.idag(), 6) },
+      { id: 'aterkommande', etikett: 'Återkommer', typ: 'val', val: [['nej', 'En gång'], ['ar', 'Varje år']], std: 'nej', halv: true },
+      { id: 'sparat', etikett: 'Redan undanlagt (kr)', typ: 'tal', halv: true },
+    ],
+    varden: { ...u },
+    spara: (v) => andra((d) => { if (ny) d.utgifter.push({ id: nyttId('u'), ...v }); else Object.assign(d.utgifter.find((x) => x.id === u.id), v); }, { meddelande: 'Sparat.' }),
+    tabort: ny ? null : () => andra((d) => { d.utgifter = d.utgifter.filter((x) => x.id !== u.id); }, { meddelande: 'Borttaget.', angraBar: true }),
+  });
+}
+
+function synkFormular() {
+  formular({
+    titel: t.lage === 'synk' ? 'Byt lösenfras' : 'Slå på krypterad synk',
+    text: 'Välj en lång lösenfras som du kommer ihåg, gärna fyra–fem ord. Den sparas aldrig i repot. Glömmer du den går uppgifterna inte att öppna.',
+    falt: [
+      { id: 'losen', etikett: 'Lösenfras', typ: 'text', krav: true },
+      { id: 'igen', etikett: 'Samma lösenfras igen', typ: 'text', krav: true },
+      { id: 'komIhag', etikett: 'Kom ihåg på den här enheten', typ: 'kryss', std: true },
+    ],
+    spara: (v) => {
+      if (v.losen.length < 10) return 'Lösenfrasen måste vara minst 10 tecken.';
+      if (v.losen !== v.igen) return 'Lösenfraserna är inte lika.';
+      (async () => {
+        try {
+          satStatus('Krypterar …', 'sparar');
+          t.losen = v.losen;
+          t.salt = null;
+          t.data.uppdaterad = new Date().toISOString();
+          const kuvert = await sparaMoln(gh, t.data, t.losen, null);
+          t.salt = kuvert.salt;
+          lokal.sparaLosen(v.losen, v.komIhag);
+          t.lage = 'synk';
+          satStatus(`Synkad ${klockFmt.format(new Date())}`, 'ok');
+          notis('Krypterad synk är på.');
+          rendera();
+        } catch (e) {
+          visaMeddelande(`Kunde inte spara i GitHub: ${e.message}`, 'fel');
+          uppdateraLagringsstatus();
+        }
+      })();
+    },
+  });
+  for (const id of ['f-losen', 'f-igen']) { const i = $(id); i.type = 'password'; i.autocomplete = 'new-password'; }
+}
+
+// ---------- Exempeldata ----------
+function fyllExempel() {
+  const d = B.idag();
+  const m = (n) => B.laggTillManader(d, n);
+  const ex = normalisera({
+    konton: [
+      { id: 'k1', namn: 'ISK – indexfonder', typ: 'langsiktigt', manadssparande: 2500, avkastning: 7, varden: [{ datum: m(-12), varde: 42000 }, { datum: m(-6), varde: 61000 }, { datum: m(-1), varde: 78500 }], transaktioner: [-5, -4, -3, -2, -1, 0].map((n) => ({ id: `t${n}`, datum: m(n), belopp: 2500, notering: 'Månadssparande' })) },
+      { id: 'k2', namn: 'Trading', typ: 'trading', manadssparande: 0, avkastning: 0, varden: [{ datum: m(-4), varde: 15000 }], transaktioner: [{ id: 'tt1', datum: m(-2), belopp: 3000, notering: 'Påfyllning' }] },
+      { id: 'k3', namn: 'Buffert sparkonto', typ: 'buffert', manadssparande: 1000, avkastning: 2.5, varden: [{ datum: m(-8), varde: 12000 }], transaktioner: [-3, -2, -1, 0].map((n) => ({ id: `tb${n}`, datum: m(n), belopp: 1000 })) },
+    ],
+    affarer: [
+      ['Guld', 1, 2000, 640], ['Silver', 1, 1500, -310], ['DAX', -1, 2000, 420], ['Guld', 1, 2500, -500], ['Nvidia', 1, 2000, 880],
+      ['Guld', -1, 2000, 260], ['OMXS30', 1, 1500, -180], ['Bitcoin', 1, 1000, 350], ['Guld', 1, 3000, 950], ['EUR/USD', -1, 1500, -220],
+    ].map(([instrument, riktning, insats, resultat], i) => ({ id: `ea${i}`, datum: new Date(Date.now() - (9 - i) * 11 * 86400000).toISOString().slice(0, 10), instrument, riktning, insats, resultat, avgift: 0, kalla: 'manuell' })),
+    budget: {
+      inkomster: [{ id: 'i1', namn: 'Lön', belopp: 12000 }, { id: 'i2', namn: 'Extrajobb', belopp: 5500 }],
+      utgifter: [{ id: 'u1', namn: 'Hyra', belopp: 5200, kategori: 'Boende' }, { id: 'u2', namn: 'Mat', belopp: 3000, kategori: 'Mat' }, { id: 'u3', namn: 'Mobil och streaming', belopp: 450, kategori: 'Abonnemang' }, { id: 'u4', namn: 'Nöje och träning', belopp: 1200, kategori: 'Nöje' }, { id: 'u5', namn: 'Transport', belopp: 600, kategori: 'Transport' }],
+      utfall: {},
+    },
+    mal: [
+      { id: 'm1', namn: 'Kontantinsats lägenhet', belopp: 300000, datum: m(48), kontoIds: ['k1'] },
+      { id: 'm2', namn: 'Tradingkapital 50 000', belopp: 50000, datum: m(18), kontoIds: ['k2'], manadssparande: 1000 },
+    ],
+    utgifter: [
+      { id: 'f1', namn: 'Sommarresa', belopp: 9000, datum: m(5), aterkommande: 'nej', sparat: 2500 },
+      { id: 'f2', namn: 'Hemförsäkring', belopp: 1800, datum: m(3), aterkommande: 'ar', sparat: 600 },
+      { id: 'f3', namn: 'Ny dator', belopp: 14000, datum: m(14), aterkommande: 'nej', sparat: 0 },
+    ],
+  });
+  ex.exempel = true;
+  const harData = t.data.konton.length || t.data.affarer.length;
+  const gor = () => andra((dd) => Object.assign(dd, ex), { meddelande: 'Exempeldata ifylld. Rensa under Lagring när du vill börja på riktigt.', angraBar: true });
+  if (harData) bekrafta('Exempeldata ersätter allt du har lagt in.', 'Ersätt').then((ja) => { if (ja) gor(); }); else gor();
+}
+
+// ---------- Start ----------
+visaFlik();
+starta();
+</script>
 </body>
 </html>

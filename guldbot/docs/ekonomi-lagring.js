@@ -10,37 +10,23 @@ const NYCKEL_LOSEN = 'guldbot.ekonomi.losen';
 const ITERATIONER = 250000;
 
 export function tomEkonomi() {
-  return { version: 2, uppdaterad: null, konton: [], affarer: [], poster: [], transaktioner: [], regler: [], mal: [], installningar: {} };
+  return { version: 1, uppdaterad: null, konton: [], affarer: [], budget: { inkomster: [], utgifter: [], utfall: {} }, mal: [], utgifter: [] };
 }
 
-export const nyttId = (prefix = 'x') => `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-
-// Läser in data från alla versioner. Version 1 hade en budget med fasta månadsbelopp och en separat lista
-// med framtida utgifter; de blir nu planerade poster.
 export function normalisera(d) {
   const t = tomEkonomi();
   if (!d || typeof d !== 'object') return t;
-  const ut = {
+  return {
     ...t, ...d,
     konton: Array.isArray(d.konton) ? d.konton.map((k) => ({ varden: [], transaktioner: [], ...k })) : [],
     affarer: Array.isArray(d.affarer) ? d.affarer : [],
-    poster: Array.isArray(d.poster) ? d.poster : [],
-    transaktioner: Array.isArray(d.transaktioner) ? d.transaktioner : [],
-    regler: Array.isArray(d.regler) ? d.regler : [],
+    budget: { ...t.budget, ...(d.budget || {}), utfall: { ...((d.budget || {}).utfall || {}) } },
     mal: Array.isArray(d.mal) ? d.mal : [],
-    installningar: { ...(d.installningar || {}) },
+    utgifter: Array.isArray(d.utgifter) ? d.utgifter : [],
   };
-  if (!Array.isArray(d.poster)) {
-    const b = d.budget || {};
-    for (const x of b.inkomster || []) ut.poster.push({ id: x.id || nyttId('p'), typ: 'inkomst', namn: x.namn, belopp: Number(x.belopp) || 0, kategori: 'Övrigt', frekvens: 'manad', start: null, slut: null });
-    for (const x of b.utgifter || []) ut.poster.push({ id: x.id || nyttId('p'), typ: 'utgift', namn: x.namn, belopp: Number(x.belopp) || 0, kategori: x.kategori || 'Övrigt', frekvens: 'manad', start: null, slut: null });
-    for (const x of d.utgifter || []) ut.poster.push({ id: x.id || nyttId('p'), typ: 'utgift', namn: x.namn, belopp: Number(x.belopp) || 0, kategori: 'Övrigt', frekvens: x.aterkommande === 'ar' ? 'ar' : 'en-gang', start: x.datum, slut: null, sparaIhop: true, sparat: Number(x.sparat) || 0 });
-  }
-  delete ut.budget;
-  delete ut.utgifter;
-  ut.version = 2;
-  return ut;
 }
+
+export const nyttId = (prefix = 'x') => `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 // ---------- Kryptering ----------
 function tillB64(bytes) {
@@ -87,7 +73,6 @@ export async function dekryptera(kuvert, losen) {
 
 // ---------- Lokalt ----------
 const sakert = (f, std) => { try { return f(); } catch { return std; } };
-export { tillampa as tillampaKo };
 export const lokal = {
   las() { return sakert(() => { const t = localStorage.getItem(NYCKEL_DATA); return t ? normalisera(JSON.parse(t)) : null; }, null); },
   spara(d) { sakert(() => localStorage.setItem(NYCKEL_DATA, JSON.stringify(d))); },
@@ -120,39 +105,16 @@ export async function sparaMoln(gh, data, losen, saltB64) {
   return kuvert;
 }
 
-// Lägger till en avslutad affär. Finns ett öppet köp med samma Guldbot-position stängs det i stället.
 export function laggTillAffarIData(data, affar) {
-  const oppen = affar.posId && data.affarer.find((a) => a.posId === affar.posId && a.oppen);
-  if (oppen) {
-    Object.assign(oppen, { ...affar, insats: affar.insats ?? oppen.insats, kopDatum: oppen.kopDatum, oppen: false, id: oppen.id });
-    data.uppdaterad = new Date().toISOString();
-    return true;
-  }
   if (affar.posId && data.affarer.some((a) => a.posId === affar.posId)) return false;
-  data.affarer.push({ id: nyttId('a'), ...affar, oppen: false });
-  data.uppdaterad = new Date().toISOString();
-  return true;
-}
-
-// Ett öppet köp (från "Jag köpte" i Guldbot eller Köp på ekonomisidan).
-export function laggTillKopIData(data, kop) {
-  if (kop.posId && data.affarer.some((a) => a.posId === kop.posId)) return false;
-  data.affarer.push({ id: nyttId('a'), ...kop, oppen: true, resultat: null, datum: null });
+  data.affarer.push({ id: nyttId('a'), ...affar });
   data.uppdaterad = new Date().toISOString();
   return true;
 }
 
 // Anropas från Guldbot-dashboarden när du trycker "Jag har sålt" och anger belopp.
 // Returnerar 'moln', 'lokal' eller 'ko' (sparas när du öppnar Ekonomi och låser upp).
-export async function registreraAffar(affar, gh) { return registrera({ ...affar, _typ: 'salj' }, gh); }
-export async function registreraKop(kop, gh) { return registrera({ ...kop, _typ: 'kop' }, gh); }
-
-function tillampa(data, post) {
-  const { _typ, ...rest } = post;
-  return _typ === 'kop' ? laggTillKopIData(data, rest) : laggTillAffarIData(data, rest);
-}
-
-async function registrera(affar, gh) {
+export async function registreraAffar(affar, gh) {
   const losen = lokal.losen();
   if (gh?.aktiv()) {
     let finns = false;
@@ -160,7 +122,7 @@ async function registrera(affar, gh) {
     if (finns && losen) {
       try {
         const m = await lasMoln(gh, losen);
-        tillampa(m.data, affar);
+        laggTillAffarIData(m.data, affar);
         await sparaMoln(gh, m.data, losen, m.kuvert.salt);
         lokal.spara(m.data);
         return 'moln';
@@ -171,7 +133,7 @@ async function registrera(affar, gh) {
     if (finns) { lokal.koa(affar); return 'ko'; }
   }
   const d = lokal.las() || tomEkonomi();
-  tillampa(d, affar);
+  laggTillAffarIData(d, affar);
   lokal.spara(d);
   return 'lokal';
 }

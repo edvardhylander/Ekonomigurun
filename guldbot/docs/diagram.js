@@ -31,7 +31,7 @@ function snyggaSteg(min, max, antal = 4) {
   const mag = 10 ** Math.floor(Math.log10(grov));
   const steg = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= grov) || 10 * mag;
   const ut = [];
-  for (let v = Math.ceil(min / steg) * steg; v <= max + 1e-9; v += steg) ut.push(Math.abs(v) < steg * 1e-6 ? 0 : v);
+  for (let v = Math.ceil(min / steg) * steg; v <= max + 1e-9; v += steg) ut.push(v);
   return { varden: ut, steg };
 }
 
@@ -42,10 +42,10 @@ function narmast(xs, x) {
 }
 
 // serier: [{ namn, farg, punkter: [[x, y], ...] }]
-export function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) => tal(v), yAxelFormat = (v, steg) => tal(v, stegDecimaler(steg)), markorer = [], refLinjer = [], hojd = 300, nollLinje = false, fyllning = false, slutEtiketter = true }) {
+export function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) => tal(v), yAxelFormat = (v, steg) => tal(v, stegDecimaler(steg)), markorer = [], refLinjer = [], hojd = 300, nollLinje = false }) {
   yta.replaceChildren();
   const bredd = Math.max(280, yta.clientWidth || 600);
-  const visaSlutEtiketter = slutEtiketter && bredd >= 560;
+  const visaSlutEtiketter = bredd >= 560;
   const m = { v: 56, h: visaSlutEtiketter ? 112 : 10, o: 10, n: 26 };
   const W = bredd - m.v - m.h, H = hojd - m.o - m.n;
   const allaX = [...new Set(serier.flatMap((s) => s.punkter.map((p) => p[0])))].sort((a, b) => a - b);
@@ -79,19 +79,6 @@ export function linjediagram(yta, { serier, xFormat, tipsTitel, yFormat = (v) =>
     if (!(r.y >= yMin && r.y <= yMax)) continue;
     sv('line', { x1: m.v, x2: m.v + W, y1: Y(r.y), y2: Y(r.y), stroke: 'var(--text-muted)', 'stroke-width': 1, 'stroke-dasharray': '4 4' }, svg);
     const txt = sv('text', { x: m.v + 4, y: Y(r.y) - 4 }, svg); txt.textContent = `${r.etikett} ${yFormat(r.y)}`;
-  }
-  // Fyllning under första serien
-  if (fyllning && serier[0]) {
-    const id = `fyll${Math.random().toString(36).slice(2, 8)}`;
-    const defs = sv('defs', {}, svg);
-    const g = sv('linearGradient', { id, x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-    sv('stop', { offset: '0%', style: `stop-color:${serier[0].farg};stop-opacity:.28` }, g);
-    sv('stop', { offset: '100%', style: `stop-color:${serier[0].farg};stop-opacity:0` }, g);
-    const pts = serier[0].punkter.filter((q) => Number.isFinite(q[1]));
-    if (pts.length > 1) {
-      const d = pts.map((q, k) => `${k ? 'L' : 'M'}${X(q[0]).toFixed(1)},${Y(q[1]).toFixed(1)}`).join('') + `L${X(pts.at(-1)[0]).toFixed(1)},${m.o + H}L${X(pts[0][0]).toFixed(1)},${m.o + H}Z`;
-      sv('path', { d, fill: `url(#${id})`, stroke: 'none' }, svg);
-    }
   }
   // Linjer
   for (const s of serier) {
@@ -191,75 +178,4 @@ export function stapeldiagram(yta, poster, { format = (v) => tal(v, 0), etikett 
       el('span', { class: 'stapelspar' }, stapel),
       el('span', { class: `stapelvarde ${p.varde > 0 ? 'upp' : p.varde < 0 ? 'ned' : 'muted'}`, text: p.varde === 0 && p.tom ? '–' : format(p.varde) }));
   })));
-}
-
-// Stående staplar per kategori (t.ex. månader), en eller flera serier bredvid varandra, med hovring.
-export function staplarVertikala(yta, { etiketter, serier, format = (v) => tal(v, 0), axelFormat = (v) => tal(v, 0), hojd = 220, etikettFormat = (e) => e }) {
-  yta.replaceChildren();
-  const bredd = Math.max(280, yta.clientWidth || 600);
-  const m = { v: 52, h: 8, o: 10, n: 24 };
-  const W = bredd - m.v - m.h, H = hojd - m.o - m.n;
-  const alla = serier.flatMap((s) => s.varden).filter(Number.isFinite);
-  if (!alla.length) { yta.append(el('p', { class: 'small muted', text: 'Ingen data att visa ännu.' })); return; }
-  let yMin = Math.min(0, ...alla), yMax = Math.max(0, ...alla);
-  if (yMax === yMin) yMax = yMin + 1;
-  const { varden, steg } = snyggaSteg(yMin, yMax, 4);
-  yMin = Math.min(yMin, varden[0]); yMax = Math.max(yMax, varden.at(-1));
-  const Y = (v) => m.o + (1 - (v - yMin) / (yMax - yMin)) * H;
-  const svg = sv('svg', { viewBox: `0 0 ${bredd} ${hojd}`, height: hojd, role: 'img', tabindex: 0 });
-  for (const v of varden) {
-    sv('line', { x1: m.v, x2: m.v + W, y1: Y(v), y2: Y(v), stroke: v === 0 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': 1 }, svg);
-    const t = sv('text', { x: m.v - 8, y: Y(v) + 4, 'text-anchor': 'end' }, svg); t.textContent = axelFormat(v, steg);
-  }
-  const n = etiketter.length;
-  const grupp = W / n;
-  const gap = 2;
-  const stapelBredd = Math.max(3, Math.min(28, (grupp * 0.72 - gap * (serier.length - 1)) / serier.length));
-  const visaVarAnnan = grupp < 34;
-  etiketter.forEach((e, i) => {
-    const mitt = m.v + grupp * (i + 0.5);
-    const total = stapelBredd * serier.length + gap * (serier.length - 1);
-    serier.forEach((s, k) => {
-      const v = s.varden[i];
-      if (!Number.isFinite(v) || v === 0) return;
-      const x = mitt - total / 2 + k * (stapelBredd + gap);
-      const y0 = Y(0), y1 = Y(v);
-      const h = Math.abs(y1 - y0);
-      const topp = Math.min(y0, y1);
-      const r = Math.min(4, stapelBredd / 2, h);
-      // Rundade hörn bara i änden bort från nollinjen
-      const d = v >= 0
-        ? `M${x},${y0}V${topp + r}Q${x},${topp} ${x + r},${topp}H${x + stapelBredd - r}Q${x + stapelBredd},${topp} ${x + stapelBredd},${topp + r}V${y0}Z`
-        : `M${x},${y0}V${topp + h - r}Q${x},${topp + h} ${x + r},${topp + h}H${x + stapelBredd - r}Q${x + stapelBredd},${topp + h} ${x + stapelBredd},${topp + h - r}V${y0}Z`;
-      sv('path', { d, fill: typeof s.farg === 'function' ? s.farg(v) : s.farg }, svg);
-    });
-    if (!visaVarAnnan || i % 2 === n % 2 || i === n - 1) {
-      const t = sv('text', { x: mitt, y: hojd - 6, 'text-anchor': 'middle' }, svg); t.textContent = etikettFormat(e);
-    }
-  });
-  const markor = sv('rect', { y: m.o, height: H, width: grupp, fill: 'var(--grid)', opacity: 0.35, visibility: 'hidden' }, svg);
-  svg.insertBefore(markor, svg.firstChild);
-  yta.append(svg);
-  const tips = el('div', { class: 'tips' });
-  yta.append(tips);
-  const visa = (i) => {
-    i = Math.max(0, Math.min(n - 1, i));
-    markor.setAttribute('x', m.v + grupp * i); markor.setAttribute('visibility', 'visible');
-    tips.replaceChildren(el('div', { class: 'rubrik', text: etikettFormat(etiketter[i]) }), ...serier.map((s) => {
-      const ikon = el('i'); ikon.style.background = typeof s.farg === 'function' ? s.farg(s.varden[i]) : s.farg; ikon.style.height = '8px'; ikon.style.borderRadius = '2px';
-      return el('div', { class: 'rad' }, ikon, el('span', { text: s.namn }), el('b', { text: format(s.varden[i] || 0) }));
-    }));
-    tips.style.display = 'block';
-    const px = ((m.v + grupp * (i + 0.5)) / bredd) * yta.clientWidth;
-    const tw = tips.offsetWidth;
-    tips.style.left = `${Math.max(0, Math.min(yta.clientWidth - tw, px - tw / 2))}px`;
-    tips.style.top = `-8px`;
-    visa.i = i;
-  };
-  const gom = () => { markor.setAttribute('visibility', 'hidden'); tips.style.display = 'none'; };
-  svg.addEventListener('pointermove', (ev) => { const r = svg.getBoundingClientRect(); visa(Math.floor((((ev.clientX - r.left) / r.width) * bredd - m.v) / grupp)); });
-  svg.addEventListener('pointerleave', gom);
-  svg.addEventListener('focus', () => visa(n - 1));
-  svg.addEventListener('blur', gom);
-  svg.addEventListener('keydown', (ev) => { if (ev.key === 'ArrowLeft') { visa((visa.i ?? n) - 1); ev.preventDefault(); } else if (ev.key === 'ArrowRight') { visa((visa.i ?? -1) + 1); ev.preventDefault(); } else if (ev.key === 'Escape') gom(); });
 }

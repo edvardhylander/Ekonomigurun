@@ -474,7 +474,7 @@
 import {
   analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText, tolkaTid, analyseraPosition, positionsHandelser,
 } from './engine.js';
-import { registreraAffar, registreraKop } from './ekonomi-lagring.js';
+import { registreraAffar } from './ekonomi-lagring.js';
 
 // ---------- Hjälpare ----------
 const $ = (id) => document.getElementById(id);
@@ -1604,11 +1604,6 @@ async function sparaKop() {
   } catch (e) {
     visaMeddelande(`Kunde inte spara positionen: ${e.message}`, 'fel');
     return;
-  }
-  if (belopp) {
-    try {
-      await registreraKop({ kopDatum: new Date().toISOString().slice(0, 10), instrument: ins.namn, riktning: p.riktning, insats: belopp, posId: p.id, kalla: 'guldbot' }, gh);
-    } catch { /* köpet finns kvar i Guldbot och kan läggas in på ekonomisidan senare */ }
   }
   await laddaPositioner();
   $('positionskort').scrollIntoView({ behavior: 'smooth', block: 'start' });

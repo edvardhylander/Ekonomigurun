@@ -7,7 +7,7 @@ Guldbot bevakar 23 marknader dygnet runt: guld, silver, olja, valutor, index, ak
 - **Live (när du tradar):** Välj ett instrument i dashboarden och tryck på *Live*. Då analyseras det varje minut på 5-minuters-, 15-minuters- eller timstaplar.
 - **Nulägesanalys:** En knapp som analyserar alla instrument direkt och sammanfattar läget.
 - **Mina positioner:** Tryck *Jag köpte lång* eller *Jag köpte kort* när du har köpt. Boten bevakar då positionen var 2–3:e minut och skickar en notis när reglerna säger sälj, och varför.
-- **Ekonomi:** En egen sida för hela din ekonomi: vad du spenderar på, budget med inkomster och utgifter som kommer en gång eller återkommande, köp och sälj med tradingstatistik, sparande, mål med kalkylator och tips. Affärer från Guldbot kommer in automatiskt.
+- **Ekonomi:** En egen sida för hela din ekonomi: tradingresultat och statistik, långsiktigt sparande, budget, mål med kalkylator och framtida utgifter. Avslutade affärer kommer in automatiskt.
 
 > Guldbot visar vad fasta tekniska regler säger. Det är inte investeringsrådgivning, och historiska resultat är ingen garanti för framtiden.
 
@@ -17,8 +17,8 @@ Guldbot bevakar 23 marknader dygnet runt: guld, silver, olja, valutor, index, ak
 
 Har du redan Guldbot igång? Då behåller du repot, hemligheterna och ntfy-ämnet. Gör så här:
 
-1. I repot på GitHub: **Add file → Upload files**. Dra in **mapparna** `docs`, `scripts` och `.github` (inte filerna en och en, då hamnar de fel) och filerna `README.md` och `package.json`. Klicka **Commit changes**. Befintliga filer med samma namn ersätts.
-   Kontrollera efteråt att `docs/ekonomi-app.js`, `docs/fonts/`, `.github/workflows/guldanalys.yml` och `.github/workflows/positionsbevakning.yml` finns i repot. Mappen `.github` syns inte alltid i Finder eller Utforskaren – slå på visning av dolda filer om du inte hittar den.
+1. I repot på GitHub: **Add file → Upload files**. Dra in alla filer från den nya mappen och klicka **Commit changes**. Befintliga filer med samma namn ersätts.
+   Kontrollera efteråt att `.github/workflows/guldanalys.yml`, `.github/workflows/positionsbevakning.yml`, `docs/bevakning.json` och `docs/positioner.json` finns i repot.
 2. Ta bort `docs/data.json` om du vill. Den används inte längre, eftersom analyserna nu sparas i mappen `docs/data/`.
 3. **Actions → Guldanalys → Run workflow**, välj **båda** och klicka på den gröna knappen.
 
@@ -85,39 +85,25 @@ Nyckeln sparas bara i den webbläsaren och gäller bara guldbot-repot. Du kan ta
 
 ## Ekonomi
 
-Knappen **Ekonomi →** överst i dashboarden öppnar sidan för din egen ekonomi (`ekonomi.html`). Allt fyller du i själv, och sidan räknar ut resten. Vill du se hur den fungerar först trycker du på *Testa med exempeldata* (rensa under Inställningar när du vill börja på riktigt).
-
-I mobilen finns flikarna längst ner och en gul **+**-knapp som alltid är nära till hands: *Utgift*, *Inkomst*, *Köp*, *Sälj*, *Insättning*, *Planera* och *Importera kontoutdrag*. På datorn ligger samma saker i menyn till vänster.
+Knappen **Ekonomi →** överst i dashboarden öppnar sidan för din egen ekonomi (`ekonomi.html`). Allt fyller du i själv, och sidan räknar ut resten. Om du vill se hur den fungerar först kan du trycka på *Testa med exempeldata*.
 
 | Flik | Innehåll |
 |---|---|
-| **Översikt** | Hur mycket du har kvar att spendera den här månaden och per dag, nettoförmögenheten och hur den är fördelad, de viktigaste tipsen, månadens inkomster, utgifter, sparande och trading, vart pengarna går, kommande händelser (till exempel ett bidrag eller en ny hyra) och dina mål |
-| **Utgifter** | Vad du spenderar på per kategori, jämfört med ditt snitt. Takt per dag och prognos för månaden, månad för månad, en värmekarta över kategorier, de största utgifterna och alla transaktioner med sök och filter |
-| **Budget** | Allt som kommer in och går ut – en gång eller varje månad, kvartal eller år, med start- och slutmånad. Prognos för 12 månader framåt, plan mot verklighet per kategori och utgifter du sparar ihop till |
-| **Trading** | Öppna köp med en Sälj-knapp, resultat för månaden, året eller all tid, träffsäkerhet, profit factor, snittvinst och snittförlust, lång mot kort, hålltid, vinst- och förlustsviter, resultatkurva, resultat per månad, fördelning av resultat och per instrument |
-| **Sparande** | Konton (buffert, långsiktigt, trading, pension) med värde och avkastning, fördelningen mellan dem och en sparplan som delar upp månadssparandet efter dina mål |
-| **Mål** | Mål kopplade till konton: om du är i fas, vad som krävs och när du når målet. Kalkylatorn räknar ränta på ränta |
-| **Tips** | Regelbaserade tips utifrån dina siffror: buffert, sparkvot, andel högrisk, kategorier som ökar, abonnemang, kommande utgifter, mål som inte är i fas och hur tradingen går |
+| **Översikt** | Nettoförmögenhet och hur den har vuxit jämfört med det du har satt in. Månadens sparande mot planen, tradingresultat, vad som är kvar i budgeten, hur många månader i rad du har nått sparmålet, nästa milstolpe och hur mycket du har om 10 år i nuvarande takt |
+| **Trading** | Resultat för månaden, året eller all tid. Träffsäkerhet, snitt per affär, profit factor, största vinst och förlust, största nedgång, resultatkurva, resultat per månad och per instrument |
+| **Sparande** | Dina konton (trading, långsiktigt, buffert, pension) med värde, insättningar och avkastning |
+| **Budget** | Inkomster och utgifter per månad, utfall mot plan, sparkvot och en knapp som registrerar månadens sparande på en gång |
+| **Mål och kalkylator** | Mål kopplade till konton: om du är i fas, hur mycket du behöver spara eller vilken avkastning som krävs, och när du når målet i nuvarande takt. Kalkylatorn räknar ränta på ränta och vad som krävs för att nå ett belopp till ett visst datum |
+| **Framtida utgifter** | Större utgifter som kommer, engångs eller varje år, och hur mycket du behöver lägga undan per månad. Summan dras automatiskt från budgeten |
 
-**Planera inkomster och utgifter.** Tryck på **+ → Planera**. Välj inkomst eller utgift och hur ofta:
-- *En gång* med ett datum, till exempel ett bidrag på 20 000 kr den 15 januari.
-- *Varje månad* (eller kvartal) från och med en månad och eventuellt till och med en månad, till exempel en hyra på 10 000 kr från januari.
-- *Varje år* med ett datum, till exempel en försäkring.
-Kryssa i *Spara ihop till den* för större utgifter, så räknas det ut hur mycket du behöver lägga undan per månad.
+**Allt hänger ihop.** När du trycker *Jag har sålt* i Guldbot och fyller i insats och vad du fick tillbaka, hamnar affären under Trading och resultatet läggs till på tradingkontot. Det i sin tur ändrar förmögenheten och målen. Insättningar och uttag räknas på kontona, och dina framtida utgifter minskar det som blir kvar i budgeten. Avslutade affärer som saknar belopp listas under Trading, så att du kan fylla i dem i efterhand.
 
-**Köp och sälj.** Tryck på **+ → Köp** när du köper och fyll i vad och insatsen. Köpet ligger sedan under *Öppna köp* på Trading. När du säljer trycker du på **Sälj** och fyller i vad du fick tillbaka, så räknas resultatet ut och hamnar på tradingkontot. Köp och sälj via *Jag köpte* och *Jag har sålt* i Guldbot kommer in automatiskt om du fyller i beloppen där.
-
-**Utgifter.** Lägg till en utgift med **+ → Utgift**: belopp och vad det var räcker, kategorin gissas utifrån texten. Snabbast är att importera ett kontoutdrag: exportera transaktionerna som CSV från banken eller markera tabellen i internetbanken och klistra in. Datum, belopp och text hittas automatiskt och rader som redan finns hoppas över. Ändrar du kategori på en transaktion kan du välja att samma text alltid ska få den kategorin.
-
-**Tipsen** bygger på mål som du kan ändra (under Tips eller Inställningar): buffert i antal månaders utgifter (standard 3), sparkvot (15 % av inkomsten), högst andel högrisk av investeringarna (10 %) och antagen långsiktig avkastning (7 % per år). Det är vanliga tumregler, inga råd om enskilda produkter.
-
-**Uppdatera kontovärdena** då och då med det värde banken visar (tryck på kontot → *Uppdatera värde*). Insättningar och tradingresultat efter det datumet räknas på automatiskt.
+**Uppdatera kontovärdena** då och då med det värde banken visar (*Uppdatera värde*). Insättningar efter det datumet räknas på automatiskt. Avkastningen räknas som värdet minus allt du har satt in.
 
 ### Lagring och lösenfras
 - **Utan GitHub-nyckel** sparas uppgifterna bara i den webbläsaren.
-- **Med GitHub-nyckel** kan du slå på krypterad synk under *Inställningar*. Uppgifterna sparas då i `docs/data/ekonomi.krypterad.json` i repot, krypterade med en lösenfras som du väljer (AES-256, nyckeln härleds med PBKDF2). Repot är publikt, men filen går inte att läsa utan lösenfrasen. På varje ny enhet låser du upp en gång, och kan välja att enheten ska komma ihåg lösenfrasen.
-- **Glömmer du lösenfrasen går uppgifterna inte att få tillbaka.** Ladda därför ner en säkerhetskopia då och då under *Inställningar*. Kopian är okrypterad, så spara den på ett säkert ställe.
-- Uppgifter från den förra versionen av sidan flyttas över automatiskt: månadsbudgeten blir planerade poster och framtida utgifter blir poster som du sparar ihop till.
+- **Med GitHub-nyckel** kan du slå på krypterad synk under fliken *Lagring*. Uppgifterna sparas då i `docs/data/ekonomi.krypterad.json` i repot, krypterade med en lösenfras som du väljer (AES-256, nyckeln härleds med PBKDF2). Repot är publikt, men filen går inte att läsa utan lösenfrasen. På varje ny enhet låser du upp en gång, och kan välja att enheten ska komma ihåg lösenfrasen.
+- **Glömmer du lösenfrasen går uppgifterna inte att få tillbaka.** Ladda därför ner en säkerhetskopia då och då under *Lagring*. Kopian är okrypterad, så spara den på ett säkert ställe.
 
 Beräkningarna bygger på det du fyller i och på antagen avkastning. De är ett planeringsverktyg, inga löften.
 
@@ -269,9 +255,8 @@ Svenska aktier har `.ST` på slutet hos Yahoo. Fler instrument från Twelve Data
 | `docs/bevakning.json` | Bevakningslistan |
 | `docs/data/` | Analyserna. Skapas av boten, så rör dem inte |
 | `docs/positioner.json` | Dina registrerade positioner. Skrivs av dashboarden |
-| `docs/ekonomi.html`, `docs/ekonomi-app.js` | Ekonomisidan: utseende, vyer och formulär |
-| `docs/ekonomi-berakning.js` | Beräkningarna för ekonomisidan: budget och prognos, utgiftsstatistik, import av kontoutdrag, tradingstatistik, mål, sparplan och tips |
-| `docs/fonts/` | Typsnittet Schibsted Grotesk (fri licens, OFL) |
+| `docs/ekonomi.html` | Ekonomisidan |
+| `docs/ekonomi-berakning.js` | Beräkningarna för ekonomisidan: ränta på ränta, mål, budget, tradingstatistik |
 | `docs/ekonomi-lagring.js` | Krypterad lagring för ekonomisidan |
 | `docs/github.js`, `docs/diagram.js` | Delar som sidorna använder: GitHub-anrop och diagram |
 | `scripts/run.mjs` | Molnskriptet för tim- och dagsanalysen |
