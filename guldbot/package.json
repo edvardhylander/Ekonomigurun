@@ -1,0 +1,11 @@
+{
+  "name": "guldbot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Signalbot för guld: analyserar guldpriset varje timme, skickar notiser och visar en dashboard.",
+  "scripts": {
+    "analys": "node scripts/run.mjs",
+    "test": "node scripts/test.mjs"
+  }
+}
