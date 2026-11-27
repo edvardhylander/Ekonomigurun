@@ -2,8 +2,15 @@ name: Guldanalys
 
 on:
   schedule:
-    - cron: '7 * * * *'   # varje timme, sju minuter över (GitHub kan ibland vara några minuter sen)
-  workflow_dispatch:        # gör att du kan köra den direkt via "Run workflow" i GitHub (även i mobilappen)
+    - cron: '7 * * * *'    # varje timme: kortsiktiga lägen (GitHub kan ibland vara några minuter sen)
+    - cron: '23 5 * * *'   # varje morgon 06:23 svensk vintertid: längre lägen på dagsstaplar
+  workflow_dispatch:         # "Run workflow" i GitHub, även i mobilappen
+    inputs:
+      lage:
+        description: 'Vad ska köras?'
+        type: choice
+        options: [båda, timme, dag]
+        default: båda
 
 permissions:
   contents: write
@@ -15,7 +22,7 @@ concurrency:
 jobs:
   analys:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -23,19 +30,22 @@ jobs:
         with:
           node-version: 22
 
-      - name: Analysera guldpriset och skicka notiser
+      - name: Analysera marknaderna och skicka notiser
         run: node scripts/run.mjs
         env:
+          LAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.lage || (github.event.schedule == '23 5 * * *' && 'dag' || 'timme') }}
+          TVINGA: ${{ github.event_name == 'workflow_dispatch' && 'ja' || '' }}
           TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           NOTISNIVAER: ${{ vars.NOTISNIVAER }}
           NOTIS_SETUP: ${{ vars.NOTIS_SETUP }}
+          NOTIS_LANGRE: ${{ vars.NOTIS_LANGRE }}
 
       - name: Spara analysen till dashboarden
         run: |
           git config user.name "guldbot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json
+          git add docs/data
           if git diff --cached --quiet; then
             echo "Ingen ändring att spara."
           else
