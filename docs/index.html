@@ -87,6 +87,7 @@
     padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2);
   }
   .prick { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+  .lank { font-size: 14px; text-decoration: none; color: var(--text-secondary); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
   .status.live .prick { background: var(--good-text); animation: puls 1.6s infinite; }
   .status.fel .prick { background: var(--critical); }
   @keyframes puls { 50% { opacity: .35; } }
@@ -260,7 +261,10 @@
   <header class="card" aria-live="polite">
     <div class="rad mellan">
       <div class="varumarke"><span class="tacka" aria-hidden="true"></span>Guldbot</div>
-      <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
+      <div class="rad">
+        <span id="status" class="status"><span class="prick" aria-hidden="true"></span><span id="statustext">Laddar …</span></span>
+        <a class="lank" href="ekonomi.html">Ekonomi →</a>
+      </div>
     </div>
     <div>
       <div class="small secondary" id="prisrubrik">–</div>
@@ -450,9 +454,13 @@
   <form method="dialog">
     <h2 id="saljRubrik">Jag har sålt</h2>
     <label>Pris på underliggande när du sålde
-      <input id="saljPris" inputmode="decimal" required>
+      <input id="saljPris" inputmode="decimal" placeholder="valfritt">
     </label>
-    <p class="small muted">Positionen tas bort från bevakningen och sparas i historiken.</p>
+    <div class="tva">
+      <label>Insats i kronor <input id="saljInsats" inputmode="decimal" placeholder="t.ex. 2000"></label>
+      <label>Fick tillbaka i kronor <input id="saljTillbaka" inputmode="decimal" placeholder="t.ex. 2450"></label>
+    </div>
+    <p class="small muted">Fyll i beloppen så hamnar resultatet automatiskt under Trading på ekonomisidan. Positionen tas bort från bevakningen och sparas i historiken.</p>
     <div class="rad" style="justify-content:flex-end">
       <button class="knapp" value="avbryt" formnovalidate>Avbryt</button>
       <button class="knapp primar" value="spara">Spara</button>
@@ -466,6 +474,7 @@
 import {
   analysera, handelser, grupperaHandelser, taBortPagaende, tal, NIVAER, regelText, tolkaTid, analyseraPosition, positionsHandelser,
 } from './engine.js';
+import { registreraAffar } from './ekonomi-lagring.js';
 
 // ---------- Hjälpare ----------
 const $ = (id) => document.getElementById(id);
@@ -1606,7 +1615,10 @@ function oppnaSalj(p, plats, prisNu) {
   saljes = { p, plats };
   const ins = insInfo(p.instrument);
   $('saljRubrik').textContent = `Jag har sålt: ${ins.namn} ${p.riktning === -1 ? 'kort' : 'lång'}`;
-  $('saljPris').value = prisNu != null ? prisNu.toFixed(ins.dec ?? 2) : '';
+  const kandPris = prisNu ?? t.data[p.instrument]?.timme?.pris ?? null;
+  $('saljPris').value = kandPris != null ? kandPris.toFixed(ins.dec ?? 2) : '';
+  $('saljInsats').value = lager.hamta(`belopp.${p.id}`);
+  $('saljTillbaka').value = '';
   $('saljdialog').showModal();
 }
 
@@ -1626,7 +1638,19 @@ async function sparaSalj() {
       delete pos.lokalStatus[p.id];
       lager.spara('posstatus', JSON.stringify(pos.lokalStatus));
     }
-    visaMeddelande(`${insInfo(p.instrument).namn} är avslutad${avslutad.resultatProc != null ? ` (${signProc(avslutad.resultatProc, 2)} på underliggande)` : ''}. Bevakningen stoppas.`, 'info');
+    let ekonomiText = '';
+    const insatsKr = tolkaTal($('saljInsats').value), tillbakaKr = tolkaTal($('saljTillbaka').value);
+    if (insatsKr != null && tillbakaKr != null) {
+      const var_ = await registreraAffar({
+        datum: new Date().toISOString().slice(0, 10), instrument: insInfo(p.instrument).namn, riktning: p.riktning,
+        insats: insatsKr, resultat: tillbakaKr - insatsKr, avgift: 0, kalla: 'guldbot', posId: p.id,
+      }, gh);
+      const res = `${tillbakaKr - insatsKr >= 0 ? '+' : ''}${tal(tillbakaKr - insatsKr, 0)} kr`;
+      ekonomiText = var_ === 'ko'
+        ? ` Resultatet (${res}) läggs in på ekonomisidan nästa gång du öppnar den och låser upp.`
+        : ` Resultatet (${res}) är inlagt på ekonomisidan.`;
+    }
+    visaMeddelande(`${insInfo(p.instrument).namn} är avslutad${avslutad.resultatProc != null ? ` (${signProc(avslutad.resultatProc, 2)} på underliggande)` : ''}. Bevakningen stoppas.${ekonomiText}`, 'info');
   } catch (e) {
     visaMeddelande(`Kunde inte spara: ${e.message}`, 'fel');
   }
